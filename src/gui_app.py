@@ -37,6 +37,13 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.geometry("1200x800")
         self.minsize(1000, 700)
         
+        # Set window icon
+        try:
+            if os.path.exists('assets/logo_128.png'):
+                self.iconbitmap('assets/logo_128.png')
+        except:
+            pass  # Icon loading is optional
+        
         # Initialize components
         self.monitor = UptodownMonitor()
         self.comparator = ConfigComparator()
@@ -993,8 +1000,11 @@ class FR4LeakingToolGUI(ctk.CTk):
                     messagebox.showerror("Error", f"Failed to clear logs: {str(e)}")
                     
     def change_appearance_mode(self, new_mode: str):
-        """Change appearance mode"""
+        """Change appearance mode dynamically without restart"""
         ctk.set_appearance_mode(new_mode.lower())
+        # Force update all widgets
+        self.update()
+        self.update_idletasks()
         
     def on_closing(self):
         """Handle window closing"""

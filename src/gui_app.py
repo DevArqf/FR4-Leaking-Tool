@@ -28,6 +28,15 @@ logger.addHandler(handler)
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# Modern Color Palette
+class ModernColors:
+    PRIMARY = "#6366f1"  # Indigo
+    SUCCESS = "#10b981"  # Green
+    WARNING = "#f59e0b"  # Orange
+    ERROR = "#ef4444"    # Red
+    INFO = "#3b82f6"     # Blue
+    ACCENT = "#ec4899"   # Pink
+
 class FR4LeakingToolGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -356,41 +365,44 @@ class FR4LeakingToolGUI(ctk.CTk):
         control_frame.pack(fill="x", pady=20, padx=20)
         
         self.check_now_btn = ctk.CTkButton(
-            control_frame,
+            button_frame,
             text="  Check Now",
             image=self.icons.get('check'),
             compound="left",
             command=self.check_update_manual,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color="#2563eb",
-            hover_color="#1d4ed8"
+            fg_color=ModernColors.PRIMARY,
+            hover_color="#4f46e5",
+            corner_radius=12
         )
         self.check_now_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
         
         self.auto_check_btn = ctk.CTkButton(
-            control_frame,
+            button_frame,
             text="  Start Auto-Check (15 min)",
             image=self.icons.get('play'),
             compound="left",
             command=self.toggle_auto_check,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color="#16a34a",
-            hover_color="#15803d"
+            fg_color=ModernColors.SUCCESS,
+            hover_color="#059669",
+            corner_radius=12
         )
         self.auto_check_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
         
         self.reset_version_btn = ctk.CTkButton(
-            control_frame,
+            button_frame,
             text="  Reset Version",
             image=self.icons.get('reset'),
             compound="left",
             command=self.reset_version,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color="#dc2626",
-            hover_color="#b91c1c"
+            fg_color=ModernColors.ERROR,
+            hover_color="#dc2626",
+            corner_radius=12
         )
         self.reset_version_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
         

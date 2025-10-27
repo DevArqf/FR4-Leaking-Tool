@@ -13,7 +13,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from uptodown_monitor import UptodownMonitor
 from config_comparator import ConfigComparator
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import discord
 from discord.ext import commands
 
@@ -208,18 +208,44 @@ class FR4LeakingToolGUI(ctk.CTk):
                 if os.path.exists(filepath):
                     try:
                         img = Image.open(filepath)
+                        
+                        # Make logo circular
+                        if key == 'logo':
+                            img = self.make_circular_image(img)
+                        
                         # Use smaller icons for buttons to prevent clipping
-                        icon_size = (32, 32) if key == 'logo' else (20, 20)
+                        icon_size = (50, 50) if key == 'logo' else (20, 20)
                         # Note: To preserve icon colors, ensure your PNG files have the desired colors
                         self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=icon_size)
                     except Exception as e:
                         logger.warning(f"Failed to load icon {filename}: {e}")
     
+    def make_circular_image(self, img):
+        """Convert an image to circular shape"""
+        # Convert to RGBA if not already
+        img = img.convert('RGBA')
+        
+        # Create a square image
+        size = min(img.size)
+        img = img.resize((size, size), Image.Resampling.LANCZOS)
+        
+        # Create circular mask
+        mask = Image.new('L', (size, size), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, size, size), fill=255)
+        
+        # Apply mask
+        output = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+        output.paste(img, (0, 0))
+        output.putalpha(mask)
+        
+        return output
+    
     def update_icon_references(self):
         """Update icon references after UI is created"""
-        # Update logo if loaded
+        # Update logo if loaded (circular icon only, no text)
         if 'logo' in self.icons and hasattr(self, 'logo_label'):
-            self.logo_label.configure(image=self.icons['logo'], text="  FR4 Tool", compound="left")
+            self.logo_label.configure(image=self.icons['logo'])
     
     def load_icons(self):
         """Deprecated - kept for compatibility"""
@@ -268,17 +294,27 @@ class FR4LeakingToolGUI(ctk.CTk):
         # Logo/Title - Using modern Segoe UI Variable font style
         self.logo_label = ctk.CTkLabel(
             self.sidebar_frame,
-            text="FR4 Leaking Tool",
+            text="",  # Will be set with icon
             font=ctk.CTkFont(family="Segoe UI Variable", size=22, weight="bold")
         )
-        self.logo_label.grid(row=0, column=0, padx=25, pady=(30, 10))  # Increased padding
+        self.logo_label.grid(row=0, column=0, padx=25, pady=(30, 5))  # Increased padding
         
+        # App title
+        title_label = ctk.CTkLabel(
+            self.sidebar_frame,
+            text="FR4 Leaking Tool",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=18, weight="bold")
+        )
+        title_label.grid(row=1, column=0, padx=25, pady=(5, 5))
+        
+        # Descriptive subtitle
         self.version_label = ctk.CTkLabel(
             self.sidebar_frame,
-            text="v1.0 Advanced",
-            font=ctk.CTkFont(family="Segoe UI Variable", size=12)
+            text="Monitor Updates & Manage Configs",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=11),
+            text_color="gray70"
         )
-        self.version_label.grid(row=1, column=0, padx=25, pady=(0, 30))  # More spacing
+        self.version_label.grid(row=2, column=0, padx=25, pady=(0, 25))  # More spacing
         
         # Navigation buttons - Consistent height and increased spacing
         self.monitor_btn = ctk.CTkButton(
@@ -291,7 +327,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             font=ctk.CTkFont(family="Segoe UI Variable", size=14),
             corner_radius=10
         )
-        self.monitor_btn.grid(row=2, column=0, padx=25, pady=(5, 8), sticky="ew")  # Increased spacing
+        self.monitor_btn.grid(row=3, column=0, padx=25, pady=(5, 8), sticky="ew")  # Increased spacing
         
         self.compare_btn = ctk.CTkButton(
             self.sidebar_frame,
@@ -303,7 +339,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             font=ctk.CTkFont(family="Segoe UI Variable", size=14),
             corner_radius=10
         )
-        self.compare_btn.grid(row=3, column=0, padx=25, pady=8, sticky="ew")
+        self.compare_btn.grid(row=4, column=0, padx=25, pady=8, sticky="ew")
         
         self.modify_btn = ctk.CTkButton(
             self.sidebar_frame,
@@ -315,7 +351,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             font=ctk.CTkFont(family="Segoe UI Variable", size=14),
             corner_radius=10
         )
-        self.modify_btn.grid(row=4, column=0, padx=25, pady=8, sticky="ew")
+        self.modify_btn.grid(row=5, column=0, padx=25, pady=8, sticky="ew")
         
         self.logs_btn = ctk.CTkButton(
             self.sidebar_frame,
@@ -327,7 +363,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             font=ctk.CTkFont(family="Segoe UI Variable", size=14),
             corner_radius=10
         )
-        self.logs_btn.grid(row=5, column=0, padx=25, pady=8, sticky="ew")
+        self.logs_btn.grid(row=6, column=0, padx=25, pady=8, sticky="ew")
         
         # Appearance mode selector - Better grouped and labeled
         self.appearance_mode_label = ctk.CTkLabel(
@@ -336,7 +372,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             anchor="w",
             font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold")
         )
-        self.appearance_mode_label.grid(row=7, column=0, padx=25, pady=(20, 8))  # More spacing
+        self.appearance_mode_label.grid(row=8, column=0, padx=25, pady=(20, 8))  # More spacing
         
         self.appearance_mode_optionemenu = ctk.CTkOptionMenu(
             self.sidebar_frame,
@@ -345,7 +381,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             height=40,  # Consistent height
             font=ctk.CTkFont(family="Segoe UI Variable", size=13)
         )
-        self.appearance_mode_optionemenu.grid(row=8, column=0, padx=25, pady=(0, 30))
+        self.appearance_mode_optionemenu.grid(row=9, column=0, padx=25, pady=(0, 30))
         
     def create_main_content(self):
         """Create main content area"""

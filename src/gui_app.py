@@ -41,6 +41,9 @@ class FR4LeakingToolGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
         
+        # Clear log file on startup
+        self.clear_log_file()
+        
         # Configure window
         self.title("Fun Run 4 Leaking Tool")
         self.geometry("1400x900")  # Larger window for more breathing room
@@ -93,6 +96,15 @@ class FR4LeakingToolGUI(ctk.CTk):
         # Start Discord bot if configured
         if self.discord_config.get('discord_token') and self.discord_config.get('channel_id'):
             self.start_discord_bot()
+    
+    def clear_log_file(self):
+        """Clear the log file on application startup"""
+        try:
+            if os.path.exists('bot.log'):
+                with open('bot.log', 'w', encoding='utf-8') as f:
+                    f.write('')
+        except Exception:
+            pass  # Silently ignore if we can't clear the log
     
     def load_discord_config(self):
         """Load Discord configuration from config.json"""
@@ -411,13 +423,32 @@ class FR4LeakingToolGUI(ctk.CTk):
         """Create the update monitoring tab with improved grouping and spacing"""
         self.monitor_tab = ctk.CTkFrame(self.main_frame)
         
-        # Title with better typography
-        title = ctk.CTkLabel(
-            self.monitor_tab,
-            text="Made with ❤ by DevArqf",
+        # Title with better typography and red heart
+        title_frame = ctk.CTkFrame(self.monitor_tab, fg_color="transparent")
+        title_frame.pack(pady=(0, 30))
+        
+        # Create title with mixed colors
+        title_label1 = ctk.CTkLabel(
+            title_frame,
+            text="Made with ",
             font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
         )
-        title.pack(pady=(0, 30))  # More breathing room
+        title_label1.pack(side="left")
+        
+        title_label2 = ctk.CTkLabel(
+            title_frame,
+            text="❤",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold"),
+            text_color="#ef4444"  # Red heart
+        )
+        title_label2.pack(side="left")
+        
+        title_label3 = ctk.CTkLabel(
+            title_frame,
+            text=" by DevArqf",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
+        )
+        title_label3.pack(side="left")
         
         # Version info group box with label
         version_group_label = ctk.CTkLabel(

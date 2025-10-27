@@ -552,6 +552,9 @@ class FR4LeakingToolGUI(ctk.CTk):
         # Configure text tags for colored messages
         self.status_textbox.tag_config("red", foreground="#ef4444")  # Red color for updates
         
+        # Make textbox read-only
+        self.status_textbox.configure(state="disabled")
+        
     def create_compare_tab(self):
         """Create the config comparison tab with improved layout"""
         self.compare_tab = ctk.CTkFrame(self.main_frame)
@@ -900,6 +903,10 @@ class FR4LeakingToolGUI(ctk.CTk):
     def add_status_log(self, message, color=None):
         """Add message to status log with optional color"""
         timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        # Temporarily enable the textbox to insert text
+        self.status_textbox.configure(state="normal")
+        
         start_pos = self.status_textbox.index("end-1c")
         self.status_textbox.insert("end", f"[{timestamp}] {message}\n")
         
@@ -909,6 +916,9 @@ class FR4LeakingToolGUI(ctk.CTk):
             self.status_textbox.tag_add(color, start_pos, end_pos)
         
         self.status_textbox.see("end")
+        
+        # Disable the textbox again to prevent user input
+        self.status_textbox.configure(state="disabled")
         
     def check_update_manual(self):
         """Manually check for updates"""

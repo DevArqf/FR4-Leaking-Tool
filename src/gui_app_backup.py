@@ -13,7 +13,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from uptodown_monitor import UptodownMonitor
 from config_comparator import ConfigComparator
-from PIL import Image, ImageTk
+from PIL import Image
 import discord
 from discord.ext import commands
 
@@ -28,15 +28,6 @@ logger.addHandler(handler)
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-# Modern Color Palette
-class ModernColors:
-    PRIMARY = "#6366f1"  # Indigo
-    SUCCESS = "#10b981"  # Green
-    WARNING = "#f59e0b"  # Orange
-    ERROR = "#ef4444"    # Red
-    INFO = "#3b82f6"     # Blue
-    ACCENT = "#ec4899"   # Pink
-
 class FR4LeakingToolGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -48,12 +39,10 @@ class FR4LeakingToolGUI(ctk.CTk):
         
         # Set window icon
         try:
-            if os.path.exists('assets/app_icon.png'):
-                # Load icon as PhotoImage for tkinter
-                icon_img = Image.open('assets/app_icon.png')
-                self.iconphoto(True, ImageTk.PhotoImage(icon_img))
-        except Exception as e:
-            logger.warning(f"Failed to load window icon: {e}")
+            if os.path.exists('assets/logo_128.png'):
+                self.iconbitmap('assets/logo_128.png')
+        except:
+            pass  # Icon loading is optional
         
         # Initialize components
         self.monitor = UptodownMonitor()
@@ -75,14 +64,11 @@ class FR4LeakingToolGUI(ctk.CTk):
         # Initialize icons dictionary first (before creating layout)
         self.icons = {}
         
-        # Load icons BEFORE creating UI so buttons have icons immediately
-        self.load_icons_early()
-        
         # Create UI
         self.create_layout()
         
-        # Update any remaining icon references
-        self.update_icon_references()
+        # Load icons after UI is created
+        self.load_icons()
         
         # Update version display
         self.update_version_display()
@@ -176,13 +162,13 @@ class FR4LeakingToolGUI(ctk.CTk):
         if self.discord_bot.loop and self.discord_bot.loop.is_running():
             asyncio.run_coroutine_threadsafe(send_message(), self.discord_bot.loop)
     
-    def load_icons_early(self):
-        """Load all icons BEFORE creating UI"""
+    def load_icons(self):
+        """Load all icons from assets folder and update button images"""
         assets_path = "assets"
         
         if os.path.exists(assets_path):
             icon_files = {
-                'logo': 'app_icon.png',  # Use new app icon
+                'logo': 'logo_128.png',
                 'monitor': 'monitor.png',
                 'compare': 'compare.png',
                 'modify': 'modify.png',
@@ -203,16 +189,6 @@ class FR4LeakingToolGUI(ctk.CTk):
                         self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=(32, 32) if key == 'logo' else (24, 24))
                     except Exception as e:
                         logger.warning(f"Failed to load icon {filename}: {e}")
-    
-    def update_icon_references(self):
-        """Update icon references after UI is created"""
-        # Update logo if loaded
-        if 'logo' in self.icons and hasattr(self, 'logo_label'):
-            self.logo_label.configure(image=self.icons['logo'], text="  FR4 Tool", compound="left")
-    
-    def load_icons(self):
-        """Deprecated - kept for compatibility"""
-        pass
         
         # Update logo if loaded
         if 'logo' in self.icons and hasattr(self, 'logo_label'):
@@ -387,9 +363,8 @@ class FR4LeakingToolGUI(ctk.CTk):
             command=self.check_update_manual,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color=ModernColors.PRIMARY,
-            hover_color="#4f46e5",
-            corner_radius=12
+            fg_color="#2563eb",
+            hover_color="#1d4ed8"
         )
         self.check_now_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
         
@@ -401,9 +376,8 @@ class FR4LeakingToolGUI(ctk.CTk):
             command=self.toggle_auto_check,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color=ModernColors.SUCCESS,
-            hover_color="#059669",
-            corner_radius=12
+            fg_color="#16a34a",
+            hover_color="#15803d"
         )
         self.auto_check_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
         
@@ -415,9 +389,8 @@ class FR4LeakingToolGUI(ctk.CTk):
             command=self.reset_version,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color=ModernColors.ERROR,
-            hover_color="#dc2626",
-            corner_radius=12
+            fg_color="#dc2626",
+            hover_color="#b91c1c"
         )
         self.reset_version_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
         

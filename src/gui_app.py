@@ -46,6 +46,9 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.geometry("1400x900")  # Larger window for more breathing room
         self.minsize(1200, 800)  # Increased minimum size
         
+        # Maximize window on startup
+        self.state('zoomed')  # Windows maximized state
+        
         # Set window icon
         try:
             if os.path.exists('assets/app_icon.png'):
@@ -177,7 +180,12 @@ class FR4LeakingToolGUI(ctk.CTk):
             asyncio.run_coroutine_threadsafe(send_message(), self.discord_bot.loop)
     
     def load_icons_early(self):
-        """Load all icons BEFORE creating UI"""
+        """Load all icons BEFORE creating UI
+        
+        Note: CustomTkinter automatically adjusts icon colors to match the theme.
+        For colored icons, replace the PNG files with colored versions.
+        The icons will retain their colors if they are originally colored.
+        """
         assets_path = "assets"
         
         if os.path.exists(assets_path):
@@ -202,6 +210,7 @@ class FR4LeakingToolGUI(ctk.CTk):
                         img = Image.open(filepath)
                         # Use smaller icons for buttons to prevent clipping
                         icon_size = (32, 32) if key == 'logo' else (20, 20)
+                        # Note: To preserve icon colors, ensure your PNG files have the desired colors
                         self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=icon_size)
                     except Exception as e:
                         logger.warning(f"Failed to load icon {filename}: {e}")
@@ -1044,7 +1053,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             self.compare_results_textbox.configure(state="disabled")
                 
             # Save modified config
-                if messagebox.askyesno("Save Modified Config?", 
+            if messagebox.askyesno("Save Modified Config?", 
                     "Do you want to save a modified config with preOwned: true added to new items?"):
                     modified_config = self.comparator.create_modified_config(new_config, changes)
                     

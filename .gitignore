@@ -40,5 +40,12 @@ config.json
 .DS_Store
 Thumbs.db
 
-# Build artifacts (keep .spec and build scripts)
+# Build artifacts
 release/
+build/
+dist/
+
+# Temporary files
+bot.log
+bot.log.*
+version_data.json

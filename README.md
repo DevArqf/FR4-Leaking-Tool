@@ -19,16 +19,17 @@
 ### Option 1: Standalone Executable (Recommended)
 **No Python installation required!**
 
-1. Download the latest release from [Releases](../../releases)
+1. Download the latest release ZIP from [Releases](https://github.com/DevArqf/funrun4-config-monitor/releases)
 2. Extract the ZIP file
-3. Follow the [Quick Start Guide](#quick-start)
+3. Rename `config.example.json` to `config.json` and add your Discord credentials
+4. Run `FR4_Leaking_Tool.exe`
 
 ### Option 2: Run from Source
 ```bash
 git clone https://github.com/DevArqf/funrun4-config-monitor.git
 cd funrun4-config-monitor
 pip install -r requirements.txt
-python gui_app.py
+python src/gui_app.py
 ```
 
 ---
@@ -105,7 +106,7 @@ python gui_app.py
 
 **If running from source:**
 ```bash
-python gui_app.py
+python src/gui_app.py
 ```
 
 ---

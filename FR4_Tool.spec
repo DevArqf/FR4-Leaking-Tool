@@ -3,7 +3,7 @@
 block_cipher = None
 
 a = Analysis(
-    ['gui_app.py'],
+    ['src/gui_app.py'],
     pathex=[],
     binaries=[],
     datas=[

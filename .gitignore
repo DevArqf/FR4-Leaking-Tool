@@ -41,4 +41,4 @@ config.json
 Thumbs.db
 
 # Build artifacts (keep .spec and build scripts)
-# Note: release/ folder will be tracked for releases
+release/

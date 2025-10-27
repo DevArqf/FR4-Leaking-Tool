@@ -43,8 +43,8 @@ class FR4LeakingToolGUI(ctk.CTk):
         
         # Configure window
         self.title("Fun Run 4 Leaking Tool")
-        self.geometry("1200x800")
-        self.minsize(1000, 700)
+        self.geometry("1400x900")  # Larger window for more breathing room
+        self.minsize(1200, 800)  # Increased minimum size
         
         # Set window icon
         try:
@@ -200,7 +200,9 @@ class FR4LeakingToolGUI(ctk.CTk):
                 if os.path.exists(filepath):
                     try:
                         img = Image.open(filepath)
-                        self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=(32, 32) if key == 'logo' else (24, 24))
+                        # Use smaller icons for buttons to prevent clipping
+                        icon_size = (32, 32) if key == 'logo' else (20, 20)
+                        self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=icon_size)
                     except Exception as e:
                         logger.warning(f"Failed to load icon {filename}: {e}")
     
@@ -250,89 +252,96 @@ class FR4LeakingToolGUI(ctk.CTk):
         
     def create_sidebar(self):
         """Create sidebar with navigation"""
-        self.sidebar_frame = ctk.CTkFrame(self, width=250, corner_radius=0)
+        self.sidebar_frame = ctk.CTkFrame(self, width=280, corner_radius=0)  # Wider sidebar
         self.sidebar_frame.grid(row=0, column=0, rowspan=2, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(6, weight=1)
         
-        # Logo/Title (image will be set later in load_icons)
+        # Logo/Title - Using modern Segoe UI Variable font style
         self.logo_label = ctk.CTkLabel(
             self.sidebar_frame,
             text="FR4 Leaking Tool",
-            font=ctk.CTkFont(size=20, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI Variable", size=22, weight="bold")
         )
-        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+        self.logo_label.grid(row=0, column=0, padx=25, pady=(30, 10))  # Increased padding
         
         self.version_label = ctk.CTkLabel(
             self.sidebar_frame,
             text="v1.0 Advanced",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=12)
         )
-        self.version_label.grid(row=1, column=0, padx=20, pady=(0, 20))
+        self.version_label.grid(row=1, column=0, padx=25, pady=(0, 30))  # More spacing
         
-        # Navigation buttons
+        # Navigation buttons - Consistent height and increased spacing
         self.monitor_btn = ctk.CTkButton(
             self.sidebar_frame,
-            text="  Monitor Updates",
+            text="    Monitor Updates",
             image=self.icons.get('monitor'),
             compound="left",
             command=self.show_monitor_tab,
-            height=40,
-            font=ctk.CTkFont(size=14)
+            height=48,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
+            corner_radius=10
         )
-        self.monitor_btn.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.monitor_btn.grid(row=2, column=0, padx=25, pady=(5, 8), sticky="ew")  # Increased spacing
         
         self.compare_btn = ctk.CTkButton(
             self.sidebar_frame,
-            text="  Compare Configs",
+            text="    Compare Configs",
             image=self.icons.get('compare'),
             compound="left",
             command=self.show_compare_tab,
-            height=40,
-            font=ctk.CTkFont(size=14)
+            height=48,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
+            corner_radius=10
         )
-        self.compare_btn.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.compare_btn.grid(row=3, column=0, padx=25, pady=8, sticky="ew")
         
         self.modify_btn = ctk.CTkButton(
             self.sidebar_frame,
-            text="  Modify Config",
+            text="    Modify Config",
             image=self.icons.get('modify'),
             compound="left",
             command=self.show_modify_tab,
-            height=40,
-            font=ctk.CTkFont(size=14)
+            height=48,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
+            corner_radius=10
         )
-        self.modify_btn.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        self.modify_btn.grid(row=4, column=0, padx=25, pady=8, sticky="ew")
         
         self.logs_btn = ctk.CTkButton(
             self.sidebar_frame,
-            text="  View Logs",
+            text="    View Logs",
             image=self.icons.get('logs'),
             compound="left",
             command=self.show_logs_tab,
-            height=40,
-            font=ctk.CTkFont(size=14)
+            height=48,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
+            corner_radius=10
         )
-        self.logs_btn.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.logs_btn.grid(row=5, column=0, padx=25, pady=8, sticky="ew")
         
-        # Appearance mode selector
+        # Appearance mode selector - Better grouped and labeled
         self.appearance_mode_label = ctk.CTkLabel(
             self.sidebar_frame,
             text="Appearance Mode:",
-            anchor="w"
+            anchor="w",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold")
         )
-        self.appearance_mode_label.grid(row=7, column=0, padx=20, pady=(10, 0))
+        self.appearance_mode_label.grid(row=7, column=0, padx=25, pady=(20, 8))  # More spacing
         
         self.appearance_mode_optionemenu = ctk.CTkOptionMenu(
             self.sidebar_frame,
             values=["Dark", "Light", "System"],
-            command=self.change_appearance_mode
+            command=self.change_appearance_mode,
+            height=40,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13)
         )
-        self.appearance_mode_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
+        self.appearance_mode_optionemenu.grid(row=8, column=0, padx=25, pady=(0, 30))
         
     def create_main_content(self):
         """Create main content area"""
         self.main_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.main_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        self.main_frame.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)  # More padding
         self.main_frame.grid_columnconfigure(0, weight=1)
         self.main_frame.grid_rowconfigure(1, weight=1)
         
@@ -346,123 +355,157 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.show_monitor_tab()
         
     def create_monitor_tab(self):
-        """Create the update monitoring tab"""
+        """Create the update monitoring tab with improved grouping and spacing"""
         self.monitor_tab = ctk.CTkFrame(self.main_frame)
         
-        # Title
+        # Title with better typography
         title = ctk.CTkLabel(
             self.monitor_tab,
             text="Uptodown Update Monitor",
-            font=ctk.CTkFont(size=28, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, 30))  # More breathing room
         
-        # Version info frame
-        version_frame = ctk.CTkFrame(self.monitor_tab)
-        version_frame.pack(fill="x", pady=10, padx=20)
+        # Version info group box with label
+        version_group_label = ctk.CTkLabel(
+            self.monitor_tab,
+            text="VERSION INFORMATION",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        version_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
+        version_frame = ctk.CTkFrame(self.monitor_tab, corner_radius=12)
+        version_frame.pack(fill="x", pady=(0, 20), padx=30)  # Increased padding
         
         self.current_version_label = ctk.CTkLabel(
             version_frame,
             text="Current Version: Loading...",
-            font=ctk.CTkFont(size=18)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=18)
         )
-        self.current_version_label.pack(pady=20)
+        self.current_version_label.pack(pady=(25, 15))  # More padding
         
         self.last_check_label = ctk.CTkLabel(
             version_frame,
             text="Last Check: Never",
-            font=ctk.CTkFont(size=14)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14)
         )
-        self.last_check_label.pack(pady=(0, 20))
+        self.last_check_label.pack(pady=(0, 25))
         
-        # Control buttons frame
-        control_frame = ctk.CTkFrame(self.monitor_tab)
-        control_frame.pack(fill="x", pady=20, padx=20)
+        # Control buttons group with label
+        control_group_label = ctk.CTkLabel(
+            self.monitor_tab,
+            text="ACTIONS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        control_group_label.pack(fill="x", padx=30, pady=(10, 5))
         
+        control_frame = ctk.CTkFrame(self.monitor_tab, corner_radius=12)
+        control_frame.pack(fill="x", pady=(0, 25), padx=30)  # More spacing
+        
+        # Consistent button heights and spacing
         self.check_now_btn = ctk.CTkButton(
             control_frame,
-            text="  Check Now",
+            text="    Check Now",
             image=self.icons.get('check'),
             compound="left",
             command=self.check_update_manual,
-            height=50,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            height=56,  # Consistent, larger height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=15, weight="bold"),
             fg_color=ModernColors.PRIMARY,
             hover_color="#4f46e5",
-            corner_radius=12
+            corner_radius=10
         )
-        self.check_now_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
+        self.check_now_btn.pack(side="left", padx=15, pady=25, expand=True, fill="x")  # More padding
         
         self.auto_check_btn = ctk.CTkButton(
             control_frame,
-            text="  Start Auto-Check (15 min)",
+            text="    Start Auto-Check (15 min)",
             image=self.icons.get('play'),
             compound="left",
             command=self.toggle_auto_check,
-            height=50,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            height=56,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=15, weight="bold"),
             fg_color=ModernColors.SUCCESS,
             hover_color="#059669",
-            corner_radius=12
+            corner_radius=10
         )
-        self.auto_check_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
+        self.auto_check_btn.pack(side="left", padx=15, pady=25, expand=True, fill="x")
         
         self.reset_version_btn = ctk.CTkButton(
             control_frame,
-            text="  Reset Version",
+            text="    Reset Version",
             image=self.icons.get('reset'),
             compound="left",
             command=self.reset_version,
-            height=50,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            height=56,  # Consistent height
+            font=ctk.CTkFont(family="Segoe UI Variable", size=15, weight="bold"),
             fg_color=ModernColors.ERROR,
             hover_color="#dc2626",
-            corner_radius=12
+            corner_radius=10
         )
-        self.reset_version_btn.pack(side="left", padx=10, pady=20, expand=True, fill="x")
+        self.reset_version_btn.pack(side="left", padx=15, pady=25, expand=True, fill="x")
         
-        # Status/Log display
+        # Status/Log display group with label
         status_label = ctk.CTkLabel(
             self.monitor_tab,
-            text="Status Log",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="STATUS LOG",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
         )
-        status_label.pack(pady=(20, 10))
+        status_label.pack(fill="x", padx=30, pady=(10, 5))
         
-        self.status_textbox = ctk.CTkTextbox(self.monitor_tab, height=300)
-        self.status_textbox.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        self.status_textbox = ctk.CTkTextbox(
+            self.monitor_tab, 
+            height=320,  # Slightly taller
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=12
+        )
+        self.status_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))  # More padding
         self.status_textbox.insert("1.0", "Ready to check for updates...\n")
         
     def create_compare_tab(self):
-        """Create the config comparison tab"""
+        """Create the config comparison tab with improved layout"""
         self.compare_tab = ctk.CTkFrame(self.main_frame)
         
         # Title
         title = ctk.CTkLabel(
             self.compare_tab,
             text="Config File Comparison",
-            font=ctk.CTkFont(size=28, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, 30))
         
-        # File selection frame
-        file_frame = ctk.CTkFrame(self.compare_tab)
-        file_frame.pack(fill="x", pady=10, padx=20)
+        # File selection group with label
+        file_group_label = ctk.CTkLabel(
+            self.compare_tab,
+            text="FILE SELECTION",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        file_group_label.pack(fill="x", padx=30, pady=(10, 5))
         
-        # Old config
-        old_config_frame = ctk.CTkFrame(file_frame)
-        old_config_frame.pack(fill="x", pady=10, padx=10)
+        file_frame = ctk.CTkFrame(self.compare_tab, corner_radius=12)
+        file_frame.pack(fill="x", pady=(0, 20), padx=30)
+        
+        # Old config - Better aligned
+        old_config_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
+        old_config_frame.pack(fill="x", pady=(20, 12), padx=20)
         
         ctk.CTkLabel(
             old_config_frame,
             text="Old Config File:",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(side="left", padx=10)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14, weight="bold"),
+            width=130,
+            anchor="w"
+        ).pack(side="left", padx=(0, 15))
         
         self.old_config_label = ctk.CTkLabel(
             old_config_frame,
             text="No file selected",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            anchor="w"
         )
         self.old_config_label.pack(side="left", padx=10, fill="x", expand=True)
         
@@ -470,23 +513,29 @@ class FR4LeakingToolGUI(ctk.CTk):
             old_config_frame,
             text="Browse",
             command=self.select_old_config,
-            width=100
-        ).pack(side="right", padx=10)
+            width=110,
+            height=36,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=8
+        ).pack(side="right", padx=(10, 0))
         
-        # New config
-        new_config_frame = ctk.CTkFrame(file_frame)
-        new_config_frame.pack(fill="x", pady=10, padx=10)
+        # New config - Better aligned
+        new_config_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
+        new_config_frame.pack(fill="x", pady=(12, 20), padx=20)
         
         ctk.CTkLabel(
             new_config_frame,
             text="New Config File:",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(side="left", padx=10)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14, weight="bold"),
+            width=130,
+            anchor="w"
+        ).pack(side="left", padx=(0, 15))
         
         self.new_config_label = ctk.CTkLabel(
             new_config_frame,
             text="No file selected",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            anchor="w"
         )
         self.new_config_label.pack(side="left", padx=10, fill="x", expand=True)
         
@@ -494,156 +543,239 @@ class FR4LeakingToolGUI(ctk.CTk):
             new_config_frame,
             text="Browse",
             command=self.select_new_config,
-            width=100
-        ).pack(side="right", padx=10)
+            width=110,
+            height=36,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=8
+        ).pack(side="right", padx=(10, 0))
         
-        # Compare button
+        # Compare button - Grouped with actions
+        action_group_label = ctk.CTkLabel(
+            self.compare_tab,
+            text="ACTIONS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        action_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
         self.compare_execute_btn = ctk.CTkButton(
             self.compare_tab,
-            text="  Compare Files",
+            text="    Compare Files",
             image=self.icons.get('compare'),
             compound="left",
             command=self.compare_configs,
-            height=50,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            height=56,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=15, weight="bold"),
             fg_color="#2563eb",
-            hover_color="#1d4ed8"
+            hover_color="#1d4ed8",
+            corner_radius=10
         )
-        self.compare_execute_btn.pack(pady=20, padx=20, fill="x")
+        self.compare_execute_btn.pack(pady=(0, 25), padx=30, fill="x")
         
-        # Results display
+        # Results display group with label
         results_label = ctk.CTkLabel(
             self.compare_tab,
-            text="Comparison Results",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="COMPARISON RESULTS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
         )
-        results_label.pack(pady=(20, 10))
+        results_label.pack(fill="x", padx=30, pady=(10, 5))
         
-        self.compare_results_textbox = ctk.CTkTextbox(self.compare_tab, height=300)
-        self.compare_results_textbox.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        self.compare_results_textbox = ctk.CTkTextbox(
+            self.compare_tab, 
+            height=320,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=12
+        )
+        self.compare_results_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         self.compare_results_textbox.insert("1.0", "Select two config files to compare...\n")
         
     def create_modify_tab(self):
-        """Create the config modification tab"""
+        """Create the config modification tab with improved layout"""
         self.modify_tab = ctk.CTkFrame(self.main_frame)
         
         # Title
         title = ctk.CTkLabel(
             self.modify_tab,
             text="Modify Config by Item IDs",
-            font=ctk.CTkFont(size=28, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, 30))
         
-        # File selection
-        file_frame = ctk.CTkFrame(self.modify_tab)
-        file_frame.pack(fill="x", pady=10, padx=20)
+        # File selection group with label
+        file_group_label = ctk.CTkLabel(
+            self.modify_tab,
+            text="FILE SELECTION",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        file_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
+        file_frame = ctk.CTkFrame(self.modify_tab, corner_radius=12)
+        file_frame.pack(fill="x", pady=(0, 20), padx=30)
+        
+        file_inner_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
+        file_inner_frame.pack(fill="x", pady=20, padx=20)
         
         ctk.CTkLabel(
-            file_frame,
+            file_inner_frame,
             text="Config File:",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(side="left", padx=10)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14, weight="bold"),
+            width=130,
+            anchor="w"
+        ).pack(side="left", padx=(0, 15))
         
         self.modify_config_label = ctk.CTkLabel(
-            file_frame,
+            file_inner_frame,
             text="No file selected",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            anchor="w"
         )
         self.modify_config_label.pack(side="left", padx=10, fill="x", expand=True)
         
         ctk.CTkButton(
-            file_frame,
+            file_inner_frame,
             text="Browse",
             command=self.select_modify_config,
-            width=100
-        ).pack(side="right", padx=10)
+            width=110,
+            height=36,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=8
+        ).pack(side="right", padx=(10, 0))
         
-        # Item IDs input
-        ids_frame = ctk.CTkFrame(self.modify_tab)
-        ids_frame.pack(fill="x", pady=20, padx=20)
+        # Item IDs input group with label
+        ids_group_label = ctk.CTkLabel(
+            self.modify_tab,
+            text="ITEM IDS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        ids_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
+        ids_frame = ctk.CTkFrame(self.modify_tab, corner_radius=12)
+        ids_frame.pack(fill="x", pady=(0, 20), padx=30)
         
         ctk.CTkLabel(
             ids_frame,
-            text="Item IDs (comma or space separated):",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(anchor="w", padx=10, pady=(10, 5))
+            text="Enter Item IDs (comma or space separated):",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            anchor="w"
+        ).pack(anchor="w", padx=20, pady=(20, 8))
         
         self.item_ids_entry = ctk.CTkEntry(
             ids_frame,
             placeholder_text="e.g., 2050, 2051, 2052 or 2050 2051 2052",
-            height=40,
-            font=ctk.CTkFont(size=14)
+            height=44,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
+            corner_radius=8
         )
-        self.item_ids_entry.pack(fill="x", padx=10, pady=(0, 10))
+        self.item_ids_entry.pack(fill="x", padx=20, pady=(0, 20))
         
-        # Modify button
+        # Modify button group with label
+        action_group_label = ctk.CTkLabel(
+            self.modify_tab,
+            text="ACTIONS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        action_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
         self.modify_execute_btn = ctk.CTkButton(
             self.modify_tab,
-            text="  Apply Modifications",
+            text="    Apply Modifications",
             image=self.icons.get('modify'),
             compound="left",
             command=self.modify_config,
-            height=50,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            height=56,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=15, weight="bold"),
             fg_color="#2563eb",
-            hover_color="#1d4ed8"
+            hover_color="#1d4ed8",
+            corner_radius=10
         )
-        self.modify_execute_btn.pack(pady=20, padx=20, fill="x")
+        self.modify_execute_btn.pack(pady=(0, 25), padx=30, fill="x")
         
-        # Results display
+        # Results display group with label
         results_label = ctk.CTkLabel(
             self.modify_tab,
-            text="Modification Results",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="MODIFICATION RESULTS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
         )
-        results_label.pack(pady=(20, 10))
+        results_label.pack(fill="x", padx=30, pady=(10, 5))
         
-        self.modify_results_textbox = ctk.CTkTextbox(self.modify_tab, height=250)
-        self.modify_results_textbox.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        self.modify_results_textbox = ctk.CTkTextbox(
+            self.modify_tab, 
+            height=280,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=12
+        )
+        self.modify_results_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         self.modify_results_textbox.insert("1.0", "Select a config file and enter item IDs to modify...\n")
         
     def create_logs_tab(self):
-        """Create the logs viewing tab"""
+        """Create the logs viewing tab with improved layout"""
         self.logs_tab = ctk.CTkFrame(self.main_frame)
         
         # Title
         title = ctk.CTkLabel(
             self.logs_tab,
             text="Application Logs",
-            font=ctk.CTkFont(size=28, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, 30))
         
-        # Control buttons
-        control_frame = ctk.CTkFrame(self.logs_tab)
-        control_frame.pack(fill="x", pady=10, padx=20)
+        # Control buttons group with label
+        control_group_label = ctk.CTkLabel(
+            self.logs_tab,
+            text="ACTIONS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        control_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
+        control_frame = ctk.CTkFrame(self.logs_tab, corner_radius=12)
+        control_frame.pack(fill="x", pady=(0, 25), padx=30)
         
         ctk.CTkButton(
             control_frame,
-            text="  Refresh Logs",
+            text="    Refresh Logs",
             image=self.icons.get('refresh'),
             compound="left",
             command=self.refresh_logs,
-            height=40,
-            font=ctk.CTkFont(size=14)
-        ).pack(side="left", padx=10)
+            height=48,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
+            corner_radius=8
+        ).pack(side="left", padx=15, pady=20)
         
         ctk.CTkButton(
             control_frame,
-            text="  Clear Logs",
+            text="    Clear Logs",
             image=self.icons.get('delete'),
             compound="left",
             command=self.clear_logs,
-            height=40,
-            font=ctk.CTkFont(size=14),
+            height=48,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=14),
             fg_color="#dc2626",
-            hover_color="#b91c1c"
-        ).pack(side="left", padx=10)
+            hover_color="#b91c1c",
+            corner_radius=8
+        ).pack(side="left", padx=15, pady=20)
         
-        # Logs display
-        self.logs_textbox = ctk.CTkTextbox(self.logs_tab, height=500)
-        self.logs_textbox.pack(fill="both", expand=True, padx=20, pady=20)
+        # Logs display group with label
+        logs_group_label = ctk.CTkLabel(
+            self.logs_tab,
+            text="LOG CONTENTS",
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13, weight="bold"),
+            anchor="w"
+        )
+        logs_group_label.pack(fill="x", padx=30, pady=(10, 5))
+        
+        self.logs_textbox = ctk.CTkTextbox(
+            self.logs_tab, 
+            height=520,
+            font=ctk.CTkFont(family="Segoe UI Variable", size=13),
+            corner_radius=12
+        )
+        self.logs_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         
     # Tab switching methods
     def show_monitor_tab(self):

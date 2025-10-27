@@ -124,10 +124,11 @@ class UptodownMonitor:
                     logger.info(f"Found version on Uptodown: {latest_version} from {latest_version_source}")
                     
                     if self.current_version is None:
+                        # When version is None (reset), treat it as a new update
                         self.current_version = latest_version
                         self.save_version_data()
-                        logger.info(f"Initial version detected: {latest_version}")
-                        return False, latest_version, "Initial version detection"
+                        logger.info(f"Version detected after reset: {latest_version}")
+                        return True, latest_version, f"New version detected: {latest_version}"
                     
                     if latest_version != self.current_version:
                         old_version = self.current_version

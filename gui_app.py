@@ -88,7 +88,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         
         # Update logo if loaded
         if 'logo' in self.icons and hasattr(self, 'logo_label'):
-            self.logo_label.configure(image=self.icons['logo'])
+            self.logo_label.configure(image=self.icons['logo'], text="  FR4 Leaking Tool", compound="left")
         
         # Update navigation buttons
         if hasattr(self, 'monitor_btn') and 'monitor' in self.icons:
@@ -126,21 +126,12 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.sidebar_frame.grid(row=0, column=0, rowspan=2, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(6, weight=1)
         
-        # Logo/Title
-        if 'logo' in self.icons:
-            self.logo_label = ctk.CTkLabel(
-                self.sidebar_frame,
-                text="  FR4 Leaking Tool",
-                image=self.icons['logo'],
-                compound="left",
-                font=ctk.CTkFont(size=20, weight="bold")
-            )
-        else:
-            self.logo_label = ctk.CTkLabel(
-                self.sidebar_frame,
-                text="FR4 Leaking Tool",
-                font=ctk.CTkFont(size=22, weight="bold")
-            )
+        # Logo/Title (image will be set later in load_icons)
+        self.logo_label = ctk.CTkLabel(
+            self.sidebar_frame,
+            text="FR4 Leaking Tool",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         
         self.version_label = ctk.CTkLabel(

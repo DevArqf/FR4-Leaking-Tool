@@ -122,33 +122,38 @@ class FR4LeakingToolGUI(ctk.CTk):
             logger.error(f"Failed to start Discord bot: {error_msg}")
             self.add_status_log(f"✗ Failed to start Discord bot: {error_msg}")
     
-    async def send_discord_notification(self, version, info):
+    def send_discord_notification(self, version, info):
         """Send Discord notification about update"""
         if not self.discord_enabled or not self.discord_bot:
             return
         
-        try:
-            channel_id = int(self.discord_config.get('channel_id'))
-            channel = self.discord_bot.get_channel(channel_id)
-            
-            if channel:
-                embed = discord.Embed(
-                    title="🚨 Fun Run 4 Update Detected!",
-                    description="A new version of Fun Run 4 has been found on Uptodown!",
-                    color=0xff6b00,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                embed.add_field(name="Version", value=version or "Unknown", inline=True)
-                embed.add_field(name="Details", value=info or "No details available", inline=False)
-                embed.set_footer(text="Detected by FR4 Leaking Tool GUI")
+        async def send_message():
+            try:
+                channel_id = int(self.discord_config.get('channel_id'))
+                channel = self.discord_bot.get_channel(channel_id)
                 
-                await channel.send("@here", embed=embed)
-                logger.info(f"Discord notification sent for version {version}")
-                self.after(0, lambda: self.add_status_log("✓ Discord notification sent"))
-        except Exception as err:
-            error_msg = str(err)
-            logger.error(f"Failed to send Discord notification: {error_msg}")
-            self.after(0, lambda msg=error_msg: self.add_status_log(f"✗ Discord notification failed: {msg}"))
+                if channel:
+                    embed = discord.Embed(
+                        title="🚨 Fun Run 4 Update Detected!",
+                        description="A new version of Fun Run 4 has been found on Uptodown!",
+                        color=0xff6b00,
+                        timestamp=datetime.now(timezone.utc)
+                    )
+                    embed.add_field(name="Version", value=version or "Unknown", inline=True)
+                    embed.add_field(name="Details", value=info or "No details available", inline=False)
+                    embed.set_footer(text="Detected by FR4 Leaking Tool GUI")
+                    
+                    await channel.send("@here", embed=embed)
+                    logger.info(f"Discord notification sent for version {version}")
+                    self.after(0, lambda: self.add_status_log("✓ Discord notification sent"))
+            except Exception as err:
+                error_msg = str(err)
+                logger.error(f"Failed to send Discord notification: {error_msg}")
+                self.after(0, lambda msg=error_msg: self.add_status_log(f"✗ Discord notification failed: {msg}"))
+        
+        # Schedule the coroutine in the bot's event loop
+        if self.discord_bot.loop and self.discord_bot.loop.is_running():
+            asyncio.run_coroutine_threadsafe(send_message(), self.discord_bot.loop)
     
     def load_icons(self):
         """Load all icons from assets folder and update button images"""
@@ -682,12 +687,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             
             # Send Discord notification
             if self.discord_enabled:
-                def send_notification():
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self.send_discord_notification(version, info))
-                    loop.close()
-                threading.Thread(target=send_notification, daemon=True).start()
+                self.send_discord_notification(version, info)
         else:
             self.add_status_log(f"✓ No update. Current: {version}")
             if info:
@@ -745,12 +745,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             
             # Send Discord notification
             if self.discord_enabled:
-                def send_notification():
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self.send_discord_notification(version, info))
-                    loop.close()
-                threading.Thread(target=send_notification, daemon=True).start()
+                self.send_discord_notification(version, info)
         else:
             self.add_status_log(f"Auto-check: No update ({version})")
             

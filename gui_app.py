@@ -108,17 +108,19 @@ class FR4LeakingToolGUI(ctk.CTk):
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     loop.run_until_complete(self.discord_bot.start(self.discord_config['discord_token']))
-                except Exception as e:
-                    logger.error(f"Discord bot error: {e}")
-                    self.after(0, lambda: self.add_status_log(f"✗ Discord bot error: {e}"))
+                except Exception as err:
+                    error_msg = str(err)
+                    logger.error(f"Discord bot error: {error_msg}")
+                    self.after(0, lambda msg=error_msg: self.add_status_log(f"✗ Discord bot error: {msg}"))
             
             self.discord_thread = threading.Thread(target=run_bot, daemon=True)
             self.discord_thread.start()
             self.add_status_log("Starting Discord bot...")
             
-        except Exception as e:
-            logger.error(f"Failed to start Discord bot: {e}")
-            self.add_status_log(f"✗ Failed to start Discord bot: {e}")
+        except Exception as err:
+            error_msg = str(err)
+            logger.error(f"Failed to start Discord bot: {error_msg}")
+            self.add_status_log(f"✗ Failed to start Discord bot: {error_msg}")
     
     async def send_discord_notification(self, version, info):
         """Send Discord notification about update"""
@@ -143,9 +145,10 @@ class FR4LeakingToolGUI(ctk.CTk):
                 await channel.send("@here", embed=embed)
                 logger.info(f"Discord notification sent for version {version}")
                 self.after(0, lambda: self.add_status_log("✓ Discord notification sent"))
-        except Exception as e:
-            logger.error(f"Failed to send Discord notification: {e}")
-            self.after(0, lambda: self.add_status_log(f"✗ Discord notification failed: {e}"))
+        except Exception as err:
+            error_msg = str(err)
+            logger.error(f"Failed to send Discord notification: {error_msg}")
+            self.after(0, lambda msg=error_msg: self.add_status_log(f"✗ Discord notification failed: {msg}"))
     
     def load_icons(self):
         """Load all icons from assets folder and update button images"""

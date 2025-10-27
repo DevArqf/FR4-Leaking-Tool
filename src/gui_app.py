@@ -217,8 +217,9 @@ class FR4LeakingToolGUI(ctk.CTk):
                         icon_size = (50, 50) if key == 'logo' else (20, 20)
                         # Note: To preserve icon colors, ensure your PNG files have the desired colors
                         self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=icon_size)
-                    except Exception as e:
-                        logger.warning(f"Failed to load icon {filename}: {e}")
+                    except Exception:
+                        # Silently skip icons that fail to load
+                        pass
     
     def make_circular_image(self, img):
         """Convert an image to circular shape"""
@@ -413,7 +414,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         # Title with better typography
         title = ctk.CTkLabel(
             self.monitor_tab,
-            text="Uptodown Update Monitor",
+            text="Made with ❤ by DevArqf",
             font=ctk.CTkFont(family="Segoe UI Variable", size=32, weight="bold")
         )
         title.pack(pady=(0, 30))  # More breathing room

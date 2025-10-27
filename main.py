@@ -50,7 +50,8 @@ except FileNotFoundError:
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+intents.members = True
+bot = commands.Bot(command_prefix='!', intents=intents, allowed_mentions=discord.AllowedMentions(everyone=True))
 
 class UptodownMonitor:
     def __init__(self):

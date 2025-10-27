@@ -585,10 +585,10 @@ class FR4LeakingToolGUI(ctk.CTk):
             self.compare_tab, 
             height=320,
             font=ctk.CTkFont(family="Segoe UI Variable", size=13),
-            corner_radius=12
+            corner_radius=12,
+            state="disabled"  # Make read-only
         )
         self.compare_results_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
-        self.compare_results_textbox.insert("1.0", "Select two config files to compare...\n")
         
     def create_modify_tab(self):
         """Create the config modification tab with improved layout"""
@@ -707,10 +707,10 @@ class FR4LeakingToolGUI(ctk.CTk):
             self.modify_tab, 
             height=280,
             font=ctk.CTkFont(family="Segoe UI Variable", size=13),
-            corner_radius=12
+            corner_radius=12,
+            state="disabled"  # Make read-only
         )
         self.modify_results_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
-        self.modify_results_textbox.insert("1.0", "Select a config file and enter item IDs to modify...\n")
         
     def create_logs_tab(self):
         """Create the logs viewing tab with improved layout"""
@@ -995,7 +995,8 @@ class FR4LeakingToolGUI(ctk.CTk):
                 
             changes = self.comparator.compare_configs(old_config, new_config)
             
-            # Display results
+            # Display results (enable textbox, update, then disable)
+            self.compare_results_textbox.configure(state="normal")
             self.compare_results_textbox.delete("1.0", "end")
             
             if not any([changes["added"], changes["removed"], changes["modified"]]):
@@ -1038,8 +1039,11 @@ class FR4LeakingToolGUI(ctk.CTk):
                     result += "\n"
                 
                 self.compare_results_textbox.insert("1.0", result)
+            
+            # Disable textbox after updating
+            self.compare_results_textbox.configure(state="disabled")
                 
-                # Save modified config
+            # Save modified config
                 if messagebox.askyesno("Save Modified Config?", 
                     "Do you want to save a modified config with preOwned: true added to new items?"):
                     modified_config = self.comparator.create_modified_config(new_config, changes)
@@ -1089,7 +1093,8 @@ class FR4LeakingToolGUI(ctk.CTk):
             # Modify config
             modified_config, modified_items, not_found = self.comparator.modify_config_by_ids(config, item_ids)
             
-            # Display results
+            # Display results (enable textbox, update, then disable)
+            self.modify_results_textbox.configure(state="normal")
             self.modify_results_textbox.delete("1.0", "end")
             
             result = "=" * 60 + "\n"
@@ -1109,6 +1114,8 @@ class FR4LeakingToolGUI(ctk.CTk):
                 result += f"  {', '.join(not_found)}\n"
             
             self.modify_results_textbox.insert("1.0", result)
+            # Disable textbox after updating
+            self.modify_results_textbox.configure(state="disabled")
             
             # Save modified config
             if modified_items:

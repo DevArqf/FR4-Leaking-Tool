@@ -40,7 +40,5 @@ config.json
 .DS_Store
 Thumbs.db
 
-# Build artifacts
-*.spec
-build_exe.bat
-launch_gui.bat
+# Build artifacts (keep .spec and build scripts)
+# Note: release/ folder will be tracked for releases

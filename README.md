@@ -1,33 +1,90 @@
-# Fun Run 4 Monitor Bot
+# 🎮 FR4 Leaking Tool
 
-A Discord bot that monitors Fun Run 4 updates on Google Play Store and compares configuration files to detect changes in game content.
+<div align="center">
 
-## Features
+**A powerful monitoring and configuration tool for Fun Run 4**
 
-🔍 **Automatic Uptodown Monitoring**: Checks for Fun Run 4 updates every 15 minutes (configurable)
-📊 **Configuration File Comparison**: Compare two `storeConfig.json` files to see what's changed  
-🔧 **Automatic Modification**: Adds `preOwned: true` to newly detected items in config files  
-🚨 **Update Notifications**: Get notified when new versions are detected
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Discord.py](https://img.shields.io/badge/discord.py-2.0+-blue.svg)](https://github.com/Rapptz/discord.py)
 
-## Setup
+[Download Latest Release](#-download) • [Features](#-features) • [Setup Guide](#-setup) • [Screenshots](#-screenshots)
 
-### Option 1: Easy Setup with Batch File (Windows)
-1. Double-click `start_bot.bat`
-2. The script will automatically:
-   - Create a virtual environment
-   - Install dependencies
-   - Check your configuration
-   - Provide a menu to start the bot or test updates
+</div>
 
-### Option 2: Manual Setup
+---
 
-#### 1. Install Dependencies
+## 📥 Download
+
+### Option 1: Standalone Executable (Recommended)
+**No Python installation required!**
+
+1. Download the latest release from [Releases](../../releases)
+2. Extract the ZIP file
+3. Follow the [Quick Start Guide](#quick-start)
+
+### Option 2: Run from Source
 ```bash
+git clone https://github.com/DevArqf/funrun4-config-monitor.git
+cd funrun4-config-monitor
 pip install -r requirements.txt
+python gui_app.py
 ```
 
-#### 2. Configure the Bot
-Update `config.json` with your Discord bot token and channel ID:
+---
+
+## ✨ Features
+
+### 🔔 Real-time Update Monitoring
+- **Automatic monitoring** of Fun Run 4 updates from Uptodown
+- **Discord notifications** with @here ping when new versions are detected
+- **Configurable check intervals** (default: 15 minutes)
+- **Desktop popup alerts** for instant awareness
+
+### 🔧 Config File Management
+- **Compare** old and new storeConfig.json files side-by-side
+- **Automatically add** `preOwned: true` to new items
+- **Batch modify** items by ID
+- **Change hidden items** from `true` to `false`
+- **Export modified configs** for immediate use
+
+### 🎨 Modern GUI Interface
+- **Beautiful dark/light themes**
+- **Tabbed interface** for easy navigation
+- **Real-time status logs**
+- **Built-in log viewer**
+- **User-friendly design**
+
+### 🤖 Discord Integration
+- **Embedded bot** runs automatically with the GUI
+- **Rich embeds** with version info and update details
+- **@here mentions** for team notifications
+- **Status indicators** in the GUI
+
+---
+
+## 🚀 Quick Start
+
+### Step 1: Discord Bot Setup
+
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click **"New Application"** and give it a name
+3. Go to the **"Bot"** section
+4. Click **"Add Bot"**
+5. Under **Privileged Gateway Intents**, enable:
+   - ✅ MESSAGE CONTENT INTENT
+   - ✅ SERVER MEMBERS INTENT
+6. Copy your **bot token**
+7. Go to **OAuth2 → URL Generator**:
+   - Scopes: `bot`
+   - Bot Permissions: `Send Messages`, `Embed Links`, `Mention Everyone`
+8. Use the generated URL to invite the bot to your server
+
+### Step 2: Configuration
+
+1. Rename `config.example.json` to `config.json`
+2. Edit the file with your details:
+
 ```json
 {
   "discord_token": "YOUR_BOT_TOKEN_HERE",
@@ -37,185 +94,117 @@ Update `config.json` with your Discord bot token and channel ID:
 }
 ```
 
-#### 3. Run the Bot
+**How to get Channel ID:**
+1. Enable Developer Mode in Discord (User Settings → Advanced)
+2. Right-click your channel → Copy ID
+
+### Step 3: Run the Tool
+
+**If using the .exe:**
+- Double-click `FR4_Leaking_Tool.exe`
+
+**If running from source:**
 ```bash
-python main.py
+python gui_app.py
 ```
 
-## Commands
+---
 
-### `!compare`
-Compare two `storeConfig.json` files to detect changes.
+## 📖 Usage Guide
 
-**Usage:** 
-1. Use the `!compare` command
-2. Attach exactly 2 JSON files to your message:
-   - First file: Old version of `storeConfig.json`
-   - Second file: New version of `storeConfig.json`
+### Monitor Tab
+- **Check Now**: Manually check for updates
+- **Start Auto-Check**: Enable automatic checking every 15 minutes
+- **Reset Version**: Clear version data (for testing)
 
-**What it does:**
-- Identifies added, removed, and modified items across all sections (animals, skins, hats, glasses, chests, feet, etc.)
-- Shows a summary of changes
-- Automatically creates a modified version of the new config file with `preOwned: true` added to all newly detected items
-- Uploads the modified config file for download
+### Compare Tab
+1. Select old storeConfig.json file
+2. Select new storeConfig.json file
+3. Click **Compare**
+4. Review changes and download modified config with `preOwned: true`
 
-**Example:**
-```
-!compare
-[Attach: old_storeConfig.json]
-[Attach: new_storeConfig.json]
-```
+### Modify Tab
+1. Select a storeConfig.json file
+2. Enter item IDs (comma or space separated)
+3. Click **Modify**
+4. Save the modified config
 
-### `!modify <item_ids>`
-Add `preOwned: true` to specific item IDs in a storeConfig.json file.
+### Logs Tab
+- View all bot activity
+- Refresh logs
+- Clear log history
 
-**Usage:** 
-1. Use the `!modify` command with a list of item IDs
-2. Attach exactly 1 JSON file to your message (the storeConfig.json to modify)
+---
 
-**What it does:**
-- Searches for the specified item IDs across all sections (animals, skins, hats, glasses, chests, feet, powerups)
-- Adds `"preOwned": true` to each found item
-- Shows which items were modified and which weren't found
-- Uploads the modified config file for download
+## 🛠️ Building from Source
 
-**Examples:**
-```
-!modify 2050,2051,2052
-[Attach: storeConfig.json]
+### Prerequisites
+- Python 3.8 or higher
+- pip
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
 ```
 
-```
-!modify 2050 2051 2052 3071 3072
-[Attach: storeConfig.json]
-```
-
-### `!check_update`
-Manually trigger a check for Fun Run 4 updates on Uptodown.
-
-**Usage:**
-```
-!check_update
+### Build Executable
+```powershell
+.\build_exe.ps1
 ```
 
-**What it does:**
-- Checks the current version of Fun Run 4 on Uptodown
-- Compares with the last known version
-- Reports if there's an update available
+The executable will be created in the `release/` folder.
 
-## Automatic Monitoring
+---
 
-The bot automatically checks for updates every 15 minutes (configurable in `config.json`). When an update is detected:
+## 📋 Requirements
 
-1. 🚨 Sends an alert to the configured Discord channel
-2. 📝 Shows the new version number
-3. 💡 Reminds users to use `!compare` to analyze configuration changes
+### For Running the Executable
+- Windows 10/11
+- Internet connection
+- Discord bot token (free to create)
 
-### Version Persistence
-The bot remembers the last known version across restarts by saving it to `version_data.json`. This ensures:
-- ✅ No false update notifications after bot restarts
-- 🎯 Accurate update detection
-- 📊 Proper version tracking history
-
-## File Structure
-
+### For Running from Source
 ```
-LeakHounds Enhanced/
-├── main.py              # Main bot file
-├── config.json          # Bot configuration
-├── requirements.txt     # Python dependencies
-├── start_bot.bat        # Windows launcher script
-├── README.md           # This file
-├── version_data.json    # Stores last known Play Store version
-├── venv/               # Virtual environment (auto-created)
-├── game_data/          # Contains example storeConfig.json
-│   └── storeConfig.json
-└── bot.log             # Bot activity log
+customtkinter>=5.2.0
+discord.py>=2.3.0
+aiohttp>=3.9.0
+Pillow>=10.0.0
 ```
 
-## How Config Comparison Works
+---
 
-The bot compares these sections in `storeConfig.json`:
-- `animals` - Character animals
-- `skins` - Animal skins/cosmetics
-- `hats` - Hat accessories
-- `glasses` - Eyewear accessories  
-- `chests` - Torso clothing
-- `feet` - Footwear accessories
-- `powerups` - Power-up items
+## 🤝 Contributing
 
-### Detection Types:
-- **Added**: New items in the new config
-- **Removed**: Items that existed in old but not new config
-- **Modified**: Items that exist in both but have different properties
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Automatic Modifications:
-When new items are detected, the bot automatically:
-1. Creates a copy of the new configuration
-2. Adds `"preOwned": true` to all newly detected items
-3. Provides the modified file for download
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Example Use Case
+---
 
-1. Fun Run 4 releases version 2.31.0 on Uptodown
-2. Bot detects the update and alerts your Discord channel
-3. You extract the new `storeConfig.json` from the updated game
-4. Use `!compare` with the old and new config files
-5. Bot shows you exactly what new skins, animals, or items were added
-6. Bot provides a modified config file with `preOwned: true` for all new items
-7. You can use the modified config in your game mod/hack
+## 📝 License
 
-## Troubleshooting
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Bot not starting?
-- Check that your Discord token is correct in `config.json`
-- Ensure the bot has proper permissions in your Discord server
-- Verify all dependencies are installed: `pip install -r requirements.txt`
+---
 
-### Update detection not working?
-- The bot scrapes Uptodown web pages, which may occasionally fail
-- Check the `bot.log` file for detailed error messages
-- Try running `!check_update` manually to test
+## ⚠️ Disclaimer
 
-### File comparison errors?
-- Ensure both files are valid JSON format
-- Files must be named with `.json` extension
-- Both files should be `storeConfig.json` structure from Fun Run 4
+This tool is for educational and monitoring purposes only. Use responsibly and in accordance with Fun Run 4's terms of service.
 
-## Batch File Features (Windows)
+---
 
-The `start_bot.bat` file provides a convenient menu system:
+## 💖 Support
 
-### Menu Options:
-1. **Start Bot** - Launches the Discord bot
-2. **Test Update Check** - Tests Uptodown connection without starting the bot
-3. **View Bot Logs** - Shows the last 50 lines of bot activity
-4. **Update Dependencies** - Updates all Python packages to latest versions
-5. **Exit** - Closes the launcher
+If you find this tool useful, consider giving it a ⭐ on GitHub!
 
-### Automatic Setup:
-- ✅ Creates virtual environment if needed
-- 🔄 Installs/updates dependencies automatically
-- ⚙️ Validates configuration before starting
-- 📋 Shows current settings
-- 📊 Displays system information
+---
 
-### Update Testing:
-Use option 2 to test if the Play Store monitoring is working:
-```
-[SUCCESS] Found Fun Run 4 version: 2.30.0
-[SUCCESS] Confirmed this is the Fun Run 4 page
-```
+<div align="center">
 
-## Configuration Options
+Made with ❤️ by [DevArqf](https://github.com/DevArqf)
 
-In `config.json`:
-- `check_interval_minutes`: How often to check for updates (default: 15 minutes)
-- `app_package`: Google Play Store package name (default: "com.dirtybit.fire")
-- `discord_token`: Your Discord bot token
-- `channel_id`: Discord channel ID where notifications are sent
-
-## Logging
-
-The bot logs all activities to `bot.log` with rotation (keeps last 3 files, max 5MB each).
-Check this file for detailed information about operations and any errors.
+</div>

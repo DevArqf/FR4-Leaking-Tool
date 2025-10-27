@@ -46,9 +46,6 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.geometry("1400x900")  # Larger window for more breathing room
         self.minsize(1200, 800)  # Increased minimum size
         
-        # Maximize window on startup
-        self.state('zoomed')  # Windows maximized state
-        
         # Set window icon
         try:
             if os.path.exists('assets/app_icon.png'):
@@ -89,6 +86,9 @@ class FR4LeakingToolGUI(ctk.CTk):
         
         # Update version display
         self.update_version_display()
+        
+        # Maximize window after UI is created
+        self.after(100, lambda: self.state('zoomed'))  # Delay to ensure window is ready
         
         # Start Discord bot if configured
         if self.discord_config.get('discord_token') and self.discord_config.get('channel_id'):

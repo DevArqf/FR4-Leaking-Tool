@@ -123,7 +123,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             @self.discord_bot.event
             async def on_ready():
                 logger.info(f'Discord bot {self.discord_bot.user} is online!')
-                self.after(0, lambda: self.add_status_log(f"✓ Discord bot connected as {self.discord_bot.user}"))
+                self.after(0, lambda: self.add_status_log(f"Discord bot connected as {self.discord_bot.user}"))
                 self.discord_enabled = True
             
             # Run bot in separate thread
@@ -135,7 +135,7 @@ class FR4LeakingToolGUI(ctk.CTk):
                 except Exception as err:
                     error_msg = str(err)
                     logger.error(f"Discord bot error: {error_msg}")
-                    self.after(0, lambda msg=error_msg: self.add_status_log(f"✗ Discord bot error: {msg}"))
+                    self.after(0, lambda msg=error_msg: self.add_status_log(f"Discord bot error: {msg}"))
             
             self.discord_thread = threading.Thread(target=run_bot, daemon=True)
             self.discord_thread.start()
@@ -144,7 +144,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         except Exception as err:
             error_msg = str(err)
             logger.error(f"Failed to start Discord bot: {error_msg}")
-            self.add_status_log(f"✗ Failed to start Discord bot: {error_msg}")
+            self.add_status_log(f"Failed to start Discord bot: {error_msg}")
     
     def send_discord_notification(self, version, info):
         """Send Discord notification about update"""
@@ -169,11 +169,11 @@ class FR4LeakingToolGUI(ctk.CTk):
                     
                     await channel.send("@here", embed=embed)
                     logger.info(f"Discord notification sent for version {version}")
-                    self.after(0, lambda: self.add_status_log("✓ Discord notification sent"))
+                    self.after(0, lambda: self.add_status_log("Discord notification sent"))
             except Exception as err:
                 error_msg = str(err)
                 logger.error(f"Failed to send Discord notification: {error_msg}")
-                self.after(0, lambda msg=error_msg: self.add_status_log(f"✗ Discord notification failed: {msg}"))
+                self.after(0, lambda msg=error_msg: self.add_status_log(f"Discord notification failed: {msg}"))
         
         # Schedule the coroutine in the bot's event loop
         if self.discord_bot.loop and self.discord_bot.loop.is_running():
@@ -892,7 +892,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.update_version_display()
         
         if has_update:
-            self.add_status_log(f"🚨 NEW UPDATE FOUND: {version}")
+            self.add_status_log(f"NEW UPDATE FOUND: {version}")
             self.add_status_log(f"Info: {info}")
             messagebox.showinfo("Update Found!", f"New version detected: {version}\n\n{info}")
             
@@ -900,7 +900,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             if self.discord_enabled:
                 self.send_discord_notification(version, info)
         else:
-            self.add_status_log(f"✓ No update. Current: {version}")
+            self.add_status_log(f"No update. Current: {version}")
             if info:
                 self.add_status_log(f"Info: {info}")
                 
@@ -951,7 +951,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.update_version_display()
         
         if has_update:
-            self.add_status_log(f"🚨 AUTO-CHECK: NEW UPDATE - {version}")
+            self.add_status_log(f"AUTO-CHECK: NEW UPDATE - {version}")
             messagebox.showwarning("Update Detected!", f"New version: {version}\n\n{info}")
             
             # Send Discord notification
@@ -984,7 +984,7 @@ class FR4LeakingToolGUI(ctk.CTk):
                 self.update_idletasks()
                 
                 # Log success
-                self.add_status_log("✓ Version data reset successfully")
+                self.add_status_log("Version data reset successfully")
                 
                 # Show success message
                 messagebox.showinfo("Success", f"Version data has been reset!\n\nCurrent version: {self.monitor.current_version or 'Not detected'}\nLast check: {self.monitor.last_check or 'Never'}")
@@ -992,7 +992,7 @@ class FR4LeakingToolGUI(ctk.CTk):
                 import traceback
                 error_details = traceback.format_exc()
                 logger.error(f"Reset version error: {error_details}")
-                self.add_status_log(f"✗ Error resetting version: {str(e)}")
+                self.add_status_log(f"Error resetting version: {str(e)}")
                 messagebox.showerror("Error", f"Failed to reset version:\n{str(e)}")
             
     def select_old_config(self):
@@ -1045,7 +1045,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             self.compare_results_textbox.delete("1.0", "end")
             
             if not any([changes["added"], changes["removed"], changes["modified"]]):
-                self.compare_results_textbox.insert("1.0", "✓ No changes detected - files are identical\n")
+                self.compare_results_textbox.insert("1.0", "No changes detected - files are identical\n")
             else:
                 result = "=" * 60 + "\n"
                 result += "COMPARISON RESULTS\n"
@@ -1147,7 +1147,7 @@ class FR4LeakingToolGUI(ctk.CTk):
             result += "=" * 60 + "\n\n"
             
             if modified_items:
-                result += f"✓ Successfully modified {len(modified_items)} items:\n\n"
+                result += f"Successfully modified {len(modified_items)} items:\n\n"
                 for item in modified_items[:20]:
                     result += f"  • {item}\n"
                 if len(modified_items) > 20:
@@ -1155,7 +1155,7 @@ class FR4LeakingToolGUI(ctk.CTk):
                 result += "\n"
             
             if not_found:
-                result += f"⚠ {len(not_found)} items not found:\n"
+                result += f"Warning: {len(not_found)} items not found:\n"
                 result += f"  {', '.join(not_found)}\n"
             
             self.modify_results_textbox.insert("1.0", result)

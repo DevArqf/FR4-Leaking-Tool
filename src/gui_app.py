@@ -518,6 +518,9 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.status_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))  # More padding
         self.status_textbox.insert("1.0", "Ready to check for updates...\n")
         
+        # Configure text tags for colored messages
+        self.status_textbox.tag_config("red", foreground="#ef4444")  # Red color for updates
+        
     def create_compare_tab(self):
         """Create the config comparison tab with improved layout"""
         self.compare_tab = ctk.CTkFrame(self.main_frame)
@@ -863,10 +866,17 @@ class FR4LeakingToolGUI(ctk.CTk):
                 pass
         self.last_check_label.configure(text=f"Last Check: {last_check}")
         
-    def add_status_log(self, message):
-        """Add message to status log"""
+    def add_status_log(self, message, color=None):
+        """Add message to status log with optional color"""
         timestamp = datetime.now().strftime("%H:%M:%S")
+        start_pos = self.status_textbox.index("end-1c")
         self.status_textbox.insert("end", f"[{timestamp}] {message}\n")
+        
+        # Apply color tag if specified
+        if color:
+            end_pos = self.status_textbox.index("end-1c")
+            self.status_textbox.tag_add(color, start_pos, end_pos)
+        
         self.status_textbox.see("end")
         
     def check_update_manual(self):
@@ -892,7 +902,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.update_version_display()
         
         if has_update:
-            self.add_status_log(f"NEW UPDATE FOUND: {version}")
+            self.add_status_log(f"NEW UPDATE FOUND: {version}", color="red")
             self.add_status_log(f"Info: {info}")
             messagebox.showinfo("Update Found!", f"New version detected: {version}\n\n{info}")
             
@@ -951,7 +961,7 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.update_version_display()
         
         if has_update:
-            self.add_status_log(f"AUTO-CHECK: NEW UPDATE - {version}")
+            self.add_status_log(f"AUTO-CHECK: NEW UPDATE - {version}", color="red")
             messagebox.showwarning("Update Detected!", f"New version: {version}\n\n{info}")
             
             # Send Discord notification

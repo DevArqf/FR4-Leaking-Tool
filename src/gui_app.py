@@ -352,13 +352,20 @@ class FR4LeakingToolGUI(ctk.CTk):
         self.main_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.main_frame.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)  # More padding
         self.main_frame.grid_columnconfigure(0, weight=1)
-        self.main_frame.grid_rowconfigure(1, weight=1)
+        self.main_frame.grid_rowconfigure(0, weight=1)
         
-        # Create tabs
+        # Create all tabs and place them in the same grid position
+        # They will overlap, and we'll raise the one we want to show
         self.create_monitor_tab()
         self.create_compare_tab()
         self.create_modify_tab()
         self.create_logs_tab()
+        
+        # Place all tabs in the same location using grid
+        self.monitor_tab.grid(row=0, column=0, sticky="nsew")
+        self.compare_tab.grid(row=0, column=0, sticky="nsew")
+        self.modify_tab.grid(row=0, column=0, sticky="nsew")
+        self.logs_tab.grid(row=0, column=0, sticky="nsew")
         
         # Show monitor tab by default
         self.show_monitor_tab()
@@ -786,30 +793,22 @@ class FR4LeakingToolGUI(ctk.CTk):
         )
         self.logs_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         
-    # Tab switching methods
+    # Tab switching methods - Using tkraise for instant switching
     def show_monitor_tab(self):
-        self.compare_tab.pack_forget()
-        self.modify_tab.pack_forget()
-        self.logs_tab.pack_forget()
-        self.monitor_tab.pack(fill="both", expand=True)
+        """Show monitor tab instantly"""
+        self.monitor_tab.tkraise()
         
     def show_compare_tab(self):
-        self.monitor_tab.pack_forget()
-        self.modify_tab.pack_forget()
-        self.logs_tab.pack_forget()
-        self.compare_tab.pack(fill="both", expand=True)
+        """Show compare tab instantly"""
+        self.compare_tab.tkraise()
         
     def show_modify_tab(self):
-        self.monitor_tab.pack_forget()
-        self.compare_tab.pack_forget()
-        self.logs_tab.pack_forget()
-        self.modify_tab.pack(fill="both", expand=True)
+        """Show modify tab instantly"""
+        self.modify_tab.tkraise()
         
     def show_logs_tab(self):
-        self.monitor_tab.pack_forget()
-        self.compare_tab.pack_forget()
-        self.modify_tab.pack_forget()
-        self.logs_tab.pack(fill="both", expand=True)
+        """Show logs tab instantly and refresh"""
+        self.logs_tab.tkraise()
         self.refresh_logs()
         
     # Functionality methods

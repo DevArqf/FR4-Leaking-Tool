@@ -8,6 +8,7 @@ import asyncio
 import threading
 import json
 import os
+import sys
 from datetime import datetime, timezone
 import logging
 from logging.handlers import RotatingFileHandler
@@ -51,9 +52,10 @@ class FR4LeakingToolGUI(ctk.CTk):
         
         # Set window icon
         try:
-            if os.path.exists('assets/app_icon.png'):
+            icon_path = self.get_asset_path('app_icon.png')
+            if os.path.exists(icon_path):
                 # Load icon as PhotoImage for tkinter
-                icon_img = Image.open('assets/app_icon.png')
+                icon_img = Image.open(icon_path)
                 self.iconphoto(True, ImageTk.PhotoImage(icon_img))
         except Exception as e:
             logger.warning(f"Failed to load window icon: {e}")
@@ -96,6 +98,18 @@ class FR4LeakingToolGUI(ctk.CTk):
         # Start Discord bot if configured
         if self.discord_config.get('discord_token') and self.discord_config.get('channel_id'):
             self.start_discord_bot()
+    
+    def get_asset_path(self, filename):
+        """Get the correct path for assets, works for both dev and PyInstaller"""
+        if getattr(sys, 'frozen', False):
+            # Running as compiled executable
+            base_path = sys._MEIPASS
+        else:
+            # Running in development
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            base_path = os.path.dirname(base_path)  # Go up one level from src/
+        
+        return os.path.join(base_path, 'assets', filename)
     
     def clear_log_file(self):
         """Clear the log file on application startup"""
@@ -198,40 +212,37 @@ class FR4LeakingToolGUI(ctk.CTk):
         For colored icons, replace the PNG files with colored versions.
         The icons will retain their colors if they are originally colored.
         """
-        assets_path = "assets"
+        icon_files = {
+            'logo': 'app_icon.png',  # Use new app icon
+            'monitor': 'monitor.png',
+            'compare': 'compare.png',
+            'modify': 'modify.png',
+            'logs': 'logs.png',
+            'check': 'btn_check.png',
+            'play': 'btn_play.png',
+            'pause': 'btn_pause.png',
+            'reset': 'btn_reset.png',
+            'refresh': 'refresh.png',
+            'delete': 'delete.png',
+        }
         
-        if os.path.exists(assets_path):
-            icon_files = {
-                'logo': 'app_icon.png',  # Use new app icon
-                'monitor': 'monitor.png',
-                'compare': 'compare.png',
-                'modify': 'modify.png',
-                'logs': 'logs.png',
-                'check': 'btn_check.png',
-                'play': 'btn_play.png',
-                'pause': 'btn_pause.png',
-                'reset': 'btn_reset.png',
-                'refresh': 'refresh.png',
-                'delete': 'delete.png',
-            }
-            
-            for key, filename in icon_files.items():
-                filepath = os.path.join(assets_path, filename)
-                if os.path.exists(filepath):
-                    try:
-                        img = Image.open(filepath)
-                        
-                        # Make logo circular
-                        if key == 'logo':
-                            img = self.make_circular_image(img)
-                        
-                        # Use smaller icons for buttons to prevent clipping
-                        icon_size = (50, 50) if key == 'logo' else (20, 20)
-                        # Note: To preserve icon colors, ensure your PNG files have the desired colors
-                        self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=icon_size)
-                    except Exception:
-                        # Silently skip icons that fail to load
-                        pass
+        for key, filename in icon_files.items():
+            filepath = self.get_asset_path(filename)
+            if os.path.exists(filepath):
+                try:
+                    img = Image.open(filepath)
+                    
+                    # Make logo circular
+                    if key == 'logo':
+                        img = self.make_circular_image(img)
+                    
+                    # Use smaller icons for buttons to prevent clipping
+                    icon_size = (50, 50) if key == 'logo' else (20, 20)
+                    # Note: To preserve icon colors, ensure your PNG files have the desired colors
+                    self.icons[key] = ctk.CTkImage(light_image=img, dark_image=img, size=icon_size)
+                except Exception:
+                    # Silently skip icons that fail to load
+                    pass
     
     def make_circular_image(self, img):
         """Convert an image to circular shape"""

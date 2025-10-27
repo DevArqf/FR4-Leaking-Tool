@@ -867,6 +867,9 @@ class FR4LeakingToolGUI(ctk.CTk):
         )
         self.logs_textbox.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         
+        # Make logs textbox read-only
+        self.logs_textbox.configure(state="disabled")
+        
     # Tab switching methods - Using tkraise for instant switching
     def show_monitor_tab(self):
         """Show monitor tab instantly"""
@@ -1235,6 +1238,8 @@ class FR4LeakingToolGUI(ctk.CTk):
             
     def refresh_logs(self):
         """Refresh log display"""
+        # Temporarily enable to update content
+        self.logs_textbox.configure(state="normal")
         self.logs_textbox.delete("1.0", "end")
         
         if os.path.exists('bot.log'):
@@ -1247,16 +1252,23 @@ class FR4LeakingToolGUI(ctk.CTk):
                 self.logs_textbox.insert("1.0", f"Error reading log file: {str(e)}")
         else:
             self.logs_textbox.insert("1.0", "No log file found.")
+        
+        # Disable again to prevent editing
+        self.logs_textbox.configure(state="disabled")
             
     def clear_logs(self):
         """Clear the log file"""
         if messagebox.askyesno("Clear Logs?", "Are you sure you want to clear all logs?"):
             if os.path.exists('bot.log'):
                 try:
+                    # Temporarily enable to update
+                    self.logs_textbox.configure(state="normal")
                     with open('bot.log', 'w', encoding='utf-8') as f:
                         f.write("")
                     self.logs_textbox.delete("1.0", "end")
                     self.logs_textbox.insert("1.0", "Logs cleared.")
+                    # Disable again to prevent editing
+                    self.logs_textbox.configure(state="disabled")
                     messagebox.showinfo("Success", "Logs cleared successfully!")
                 except Exception as e:
                     messagebox.showerror("Error", f"Failed to clear logs: {str(e)}")

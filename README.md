@@ -64,7 +64,7 @@ python src/gui_app.py
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Setup Guide
 
 ### Step 1: Discord Bot Setup
 

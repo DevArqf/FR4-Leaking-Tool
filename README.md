@@ -135,6 +135,15 @@ python src/gui_app.py
 - Refresh logs
 - Clear log history
 
+## 📷 Screenshots
+<img width="1365" height="727" alt="image" src="https://github.com/user-attachments/assets/a0e62b81-fe99-4aed-8a80-fab25b6e2b3f" />
+<img width="1033" height="188" alt="image" src="https://github.com/user-attachments/assets/ac8dfdf1-63a9-46ee-9fae-4b38fd6e2aa1" />
+<img width="1035" height="188" alt="image" src="https://github.com/user-attachments/assets/8930c38f-5470-43e9-aff9-f91af9354bc6" />
+<img width="1076" height="642" alt="image" src="https://github.com/user-attachments/assets/83dfdac0-6c66-42b6-9c6d-5be9eb6b274a" />
+<img width="1027" height="227" alt="image" src="https://github.com/user-attachments/assets/37c6fc74-658d-44d8-b4b2-1cbe7441e537" />
+<img width="1077" height="643" alt="image" src="https://github.com/user-attachments/assets/68f031fd-8a11-4cbf-a214-f5ea6dd9aac0" />
+<img width="1074" height="644" alt="image" src="https://github.com/user-attachments/assets/02407d69-e726-4221-b6c2-0c26a1870a19" />
+
 ---
 
 ## 🛠️ Building from Source

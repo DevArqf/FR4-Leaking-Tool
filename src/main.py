@@ -288,12 +288,25 @@ async def update_checker():
     """Periodic task to check for Play Store updates"""
     logger.info("Running scheduled update check...")
     
-    has_update, version, info = await uptodown_monitor.check_uptodown_update()
-    
     channel = bot.get_channel(int(config['channel_id']))
     if not channel:
         logger.error(f"Channel ID {config['channel_id']} not found or bot doesn't have access")
         return
+    
+    # Send a message indicating check is starting
+    check_embed = discord.Embed(
+        title="🔍 Checking for Updates",
+        description="Performing scheduled check for Fun Run 4 updates...",
+        color=0x3498db,
+        timestamp=datetime.now(timezone.utc)
+    )
+    try:
+        await channel.send(embed=check_embed) # type: ignore
+        logger.info("Sent update check notification")
+    except Exception as e:
+        logger.error(f"Failed to send check notification: {str(e)}")
+    
+    has_update, version, info = await uptodown_monitor.check_uptodown_update()
     
     logger.info(f"Update check result: has_update={has_update}, version={version}, info={info}")
     
@@ -306,13 +319,30 @@ async def update_checker():
         )
         embed.add_field(name="Version", value=version or "Unknown", inline=True)
         embed.add_field(name="Details", value=info or "No details available", inline=False)
-        embed.set_footer(text="Use !compare command with old and new storeConfig.json files to see changes")
+        embed.set_footer(text="Use !compare command with old and new config file(s) files to see changes")
         
         try:
-            await channel.send("@here", embed=embed) # type: ignore
+            await channel.send("@everyone", embed=embed) # type: ignore
             logger.info(f"Update notification sent successfully for version {version}")
         except Exception as e:
             logger.error(f"Failed to send Discord notification: {str(e)}")
+    else:
+        # Send message indicating no update found
+        no_update_embed = discord.Embed(
+            title="✅ Check Complete",
+            description="No new updates found.",
+            color=0x2ecc71,
+            timestamp=datetime.now(timezone.utc)
+        )
+        no_update_embed.add_field(name="Current Version", value=version or "Unknown", inline=True)
+        if info:
+            no_update_embed.add_field(name="Status", value=info, inline=False)
+        
+        try:
+            await channel.send(embed=no_update_embed) # type: ignore
+            logger.info("No update found - notification sent")
+        except Exception as e:
+            logger.error(f"Failed to send no-update notification: {str(e)}")
 
 @bot.command(name='compare')
 async def compare_configs(ctx):

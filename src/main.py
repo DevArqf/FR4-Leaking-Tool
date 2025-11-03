@@ -1,19 +1,20 @@
 import discord
 from discord.ext import commands, tasks
 import asyncio
-import json
 import requests
-import aiohttp
 import io
 import difflib
 from datetime import datetime, timezone
 import logging
 from logging.handlers import RotatingFileHandler
-import os
 from typing import Dict, List, Tuple, Optional, Any
+import os
+import json
+import aiohttp
+from google_play_scraper import app
 
 # Configure logging
-logger = logging.getLogger('funrun_monitor')
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = RotatingFileHandler('bot.log', maxBytes=5*1024*1024, backupCount=3, encoding='utf-8')
 handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -44,31 +45,53 @@ try:
     with open('config.json', 'r') as f:
         config = json.load(f)
 except FileNotFoundError:
-    logger.error("config.json not found. Please create it from config.example.json")
-    logger.info("Copy config.example.json to config.json and fill in your Discord bot token and channel ID")
+    logger.error("config.json not found. Creating default config...")
+    config = {
+        "discord_token": "YOUR_BOT_TOKEN",
+        "channel_id": "YOUR_CHANNEL_ID",
+        "app_package": "com.dirtybit.fire",
+        "check_interval_minutes": 15
+    }
+    with open('config.json', 'w') as f:
+        json.dump(config, f, indent=2)
+    logger.info("Please update config.json with your bot token and channel ID")
     exit(1)
 
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True
-bot = commands.Bot(command_prefix='!', intents=intents, allowed_mentions=discord.AllowedMentions(everyone=True))
+bot = commands.Bot(command_prefix='!', intents=intents)
 
-class UptodownMonitor:
-    def __init__(self):
+class StoreMonitor:
+    def __init__(self, package_name: str, app_store_id: Optional[str] = None):
+        """
+        Initialize the store monitor.
+        
+        Args:
+            package_name: Google Play package name (e.g., 'com.dirtybit.fire')
+            app_store_id: iOS App Store ID (optional, e.g., '1503294866')
+        """
         self.version_file = "version_data.json"
-        self.current_version = None
+        self.package_name = package_name
+        self.app_store_id = app_store_id
+        self.current_versions = {
+            'play_store': None,
+            'app_store': None
+        }
         self.last_check = None
         self.load_version_data()
     
     def load_version_data(self):
-        """Load the last known version from disk"""
+        """Load the last known versions from disk"""
         try:
             if os.path.exists(self.version_file):
                 with open(self.version_file, 'r') as f:
                     data = json.load(f)
-                    self.current_version = data.get('version')
+                    self.current_versions = data.get('versions', {
+                        'play_store': None,
+                        'app_store': None
+                    })
                     self.last_check = data.get('last_check')
-                    logger.info(f"Loaded version data: {self.current_version} (last check: {self.last_check})")
+                    logger.info(f"Loaded version data: Play Store={self.current_versions.get('play_store')}, App Store={self.current_versions.get('app_store')} (last check: {self.last_check})")
             else:
                 logger.info("No version data file found, starting fresh")
         except Exception as e:
@@ -78,105 +101,171 @@ class UptodownMonitor:
         """Save the current version data to disk"""
         try:
             data = {
-                'version': self.current_version,
+                'versions': self.current_versions,
                 'last_check': datetime.now(timezone.utc).isoformat()
             }
             with open(self.version_file, 'w') as f:
                 json.dump(data, f, indent=2)
-            logger.info(f"Saved version data: {self.current_version}")
+            logger.info(f"Saved version data: {self.current_versions}")
         except Exception as e:
             logger.error(f"Error saving version data: {str(e)}")
     
-    async def check_uptodown_update(self) -> Tuple[bool, Optional[str], Optional[str]]:
-        """
-        Check Uptodown for Fun Run 4 updates.
-        Returns: (has_update, new_version, update_info)
-        """
+    async def get_play_store_version(self) -> Optional[str]:
+        """Get the current version from Google Play Store"""
         try:
-            # Try multiple URLs to get the latest version
-            urls_to_try = [
-                "https://fun-run-4.en.uptodown.com/android/download",  # Download page often has latest version
-                "https://fun-run-4.en.uptodown.com/android",           # Main page
-            ]
+            result = app(self.package_name, lang='en', country='us')
+            version = result.get('version')
+            logger.info(f"Play Store version: {version}")
+            return version
+        except Exception as e:
+            logger.error(f"Error getting Play Store version: {str(e)}")
+            return None
+    
+    async def get_app_store_version(self) -> Optional[str]:
+        """Get the current version from iOS App Store"""
+        if not self.app_store_id:
+            return None
+        
+        try:
+            url = f"https://itunes.apple.com/lookup?id={self.app_store_id}"
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0'
             }
             
-            latest_version = None
-            latest_version_source = None
-            
             async with aiohttp.ClientSession() as session:
-                for url in urls_to_try:
-                    logger.info(f"Checking URL: {url}")
-                    async with session.get(url, headers=headers) as response:
-                        if response.status != 200:
-                            logger.warning(f"Failed to fetch from {url}. Status: {response.status}")
-                            continue
-                        
-                        content = await response.text()
+                async with session.get(url, headers=headers) as response:
+                    if response.status != 200:
+                        logger.warning(f"Failed to fetch from App Store. Status: {response.status}")
+                        return None
                     
-                        # Extract version information from Uptodown page
-                        import re
-                        
-                        # Try multiple patterns for version extraction
-                        version_patterns = [
-                            r'Fun Run 4\s+([\d\.]+)',  # Common format on download pages
-                            r'Version\s*([\d\.]+)',   # Direct version format
-                            r'([\d]+\.[\d]+\.[\d]+)',  # Generic version pattern
-                            r'Version\s*</span>\s*<span[^>]*>([^<]+)</span>',
-                            r'<span[^>]*class="[^"]*version[^"]*"[^>]*>([^<]+)</span>',
-                            r'"version":\s*"([^"]+)"',
-                            r'Version\s+([\d\.]+)',
-                            r'v([\d\.]+)',
-                            r'Version:\s*([\d\.]+)',
-                            r'<div[^>]*version[^>]*>([^<]+)</div>'
-                        ]
+                    # Force reading as JSON regardless of content-type
+                    data = await response.json(content_type=None)
                     
-                        found_version = None
-                        for pattern in version_patterns:
-                            version_match = re.search(pattern, content, re.IGNORECASE)
-                            if version_match:
-                                raw_version = version_match.group(1).strip()
-                                # Clean up version string
-                                cleaned_version = re.sub(r'[^\d\.]', '', raw_version)
-                                if cleaned_version and len(cleaned_version) > 0:
-                                    found_version = cleaned_version
-                                    break
-                        
-                        # Compare with current latest version
-                        if found_version:
-                            if latest_version is None or compare_versions(found_version, latest_version) > 0:
-                                latest_version = found_version
-                                latest_version_source = url
-                                logger.info(f"Found higher version: {latest_version} from {url}")
-                    
-                # After trying all URLs, check if we found any version
-                if latest_version:
-                    logger.info(f"Found version on Uptodown: {latest_version} from {latest_version_source}")
-                    
-                    # Check if this is a new version
-                    if self.current_version is None:
-                        # When version is None (reset), treat it as a new update
-                        self.current_version = latest_version
-                        self.save_version_data()  # Persist the version
-                        logger.info(f"Version detected after reset: {latest_version}")
-                        return True, latest_version, f"New version detected: {latest_version}"
-                    
-                    if latest_version != self.current_version:
-                        old_version = self.current_version
-                        self.current_version = latest_version
-                        self.save_version_data()  # Persist the new version
-                        logger.info(f"New version detected: {old_version} -> {latest_version}")
-                        return True, latest_version, f"Version updated from {old_version} to {latest_version}"
-                    
-                    return False, latest_version, "No update available"
-                else:
-                    logger.warning("Could not extract version information from any Uptodown page")
-                    return False, None, "Could not extract version information"
-                        
+                    if data.get('resultCount', 0) > 0:
+                        version = data['results'][0].get('version')
+                        logger.info(f"App Store version: {version}")
+                        return version
+                    else:
+                        logger.warning("No results found for App Store ID")
+                        return None
         except Exception as e:
-            logger.error(f"Error checking Uptodown: {str(e)}")
-            return False, None, f"Error: {str(e)}"
+            logger.error(f"Error getting App Store version: {str(e)}")
+            return None
+    
+    async def check_store_updates(self) -> dict:
+        """
+        Check both stores for updates.
+        Returns: dict with update information for each store
+        """
+        results = {
+            'play_store': {'has_update': False, 'new_version': None, 'info': None},
+            'app_store': {'has_update': False, 'new_version': None, 'info': None}
+        }
+        
+        # Check Play Store
+        play_version = await self.get_play_store_version()
+        if play_version:
+            if self.current_versions['play_store'] is None:
+                # First time detection
+                self.current_versions['play_store'] = play_version
+                results['play_store'] = {
+                    'has_update': False,
+                    'new_version': play_version,
+                    'info': f"Initial Play Store version detected: {play_version}"
+                }
+                logger.info(f"Initial Play Store version detected: {play_version}")
+            elif play_version != self.current_versions['play_store']:
+                # New version detected
+                old_version = self.current_versions['play_store']
+                self.current_versions['play_store'] = play_version
+                results['play_store'] = {
+                    'has_update': True,
+                    'new_version': play_version,
+                    'info': f"Play Store version updated from {old_version} to {play_version}"
+                }
+                logger.info(f"New Play Store version detected: {old_version} -> {play_version}")
+            else:
+                results['play_store'] = {
+                    'has_update': False,
+                    'new_version': play_version,
+                    'info': "No Play Store update available"
+                }
+        else:
+            results['play_store']['info'] = "Could not retrieve Play Store version"
+        
+        # Check App Store
+        if self.app_store_id:
+            app_version = await self.get_app_store_version()
+            if app_version:
+                if self.current_versions['app_store'] is None:
+                    # First time detection
+                    self.current_versions['app_store'] = app_version
+                    results['app_store'] = {
+                        'has_update': False,
+                        'new_version': app_version,
+                        'info': f"Initial App Store version detected: {app_version}"
+                    }
+                    logger.info(f"Initial App Store version detected: {app_version}")
+                elif app_version != self.current_versions['app_store']:
+                    # New version detected
+                    old_version = self.current_versions['app_store']
+                    self.current_versions['app_store'] = app_version
+                    results['app_store'] = {
+                        'has_update': True,
+                        'new_version': app_version,
+                        'info': f"App Store version updated from {old_version} to {app_version}"
+                    }
+                    logger.info(f"New App Store version detected: {old_version} -> {app_version}")
+                else:
+                    results['app_store'] = {
+                        'has_update': False,
+                        'new_version': app_version,
+                        'info': "No App Store update available"
+                    }
+            else:
+                results['app_store']['info'] = "Could not retrieve App Store version"
+        
+        # Save version data after checking
+        self.save_version_data()
+        
+        return results
+    
+    async def check_update(self) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Legacy method to maintain compatibility with old code.
+        Checks Play Store only and returns in the old format.
+        Returns: (has_update, new_version, update_info)
+        """
+        play_version = await self.get_play_store_version()
+        
+        if play_version:
+            if self.current_versions['play_store'] is None:
+                self.current_versions['play_store'] = play_version
+                self.save_version_data()
+                logger.info(f"Initial version detected: {play_version}")
+                return False, play_version, "Initial version detection"
+            
+            if play_version != self.current_versions['play_store']:
+                old_version = self.current_versions['play_store']
+                self.current_versions['play_store'] = play_version
+                self.save_version_data()
+                logger.info(f"New version detected: {old_version} -> {play_version}")
+                return True, play_version, f"Version updated from {old_version} to {play_version}"
+            
+            return False, play_version, "No update available"
+        else:
+            logger.warning("Could not retrieve version information from Play Store")
+            return False, None, "Could not retrieve version information"
+
+
+# Example usage:
+# For Fun Run 4
+# monitor = StoreMonitor(
+#     package_name='com.dirtybit.fire',  # Fun Run 4 package name
+#     app_store_id='1503294866'         # Fun Run 4 App Store ID (optional)
+# )
+# results = await monitor.check_store_updates()
 
 class ConfigComparator:
     def __init__(self):
@@ -184,7 +273,7 @@ class ConfigComparator:
     
     def compare_configs(self, old_config: Dict, new_config: Dict) -> Dict[str, Any]:
         """
-        Compare two storeConfig.json files and return detailed changes.
+        Compare two config files [Add old file as attachment first then new file] and return detailed changes.
         """
         changes = {
             "added": {},
@@ -238,21 +327,21 @@ class ConfigComparator:
     
     def create_modified_config(self, new_config: Dict, changes: Dict) -> Dict:
         """
-        Create a modified version of the new config with preOwned: true added to new items.
-        Also changes any "hidden": true to "hidden": false in the entire config.
+        Create a modified version of the new config with the secret object added to new items.
+        Also changes any "hidden": true to "hidden": false.
         """
         modified_config = json.loads(json.dumps(new_config))  # Deep copy
         
-        # Add preOwned: true to all added items
+        # Add the secret object to all added items
         for section, items in changes["added"].items():
             if section in modified_config:
                 for item_id in items:
                     if item_id in modified_config[section]:
-                        modified_config[section][item_id]["preOwned"] = True
+                        modified_config[section][item_id]["the secret object"] = True
         
-        # Change all "hidden": true to "hidden": false throughout the entire config
-        sections_to_compare = ["animals", "skins", "hats", "glasses", "chests", "feet", "powerups"]
-        for section in sections_to_compare:
+        # Change all "hidden": true to "hidden": false
+        sections_to_check = ["animals", "skins", "hats", "glasses", "chests", "feet", "powerups"]
+        for section in sections_to_check:
             if section in modified_config:
                 for item_id, item_data in modified_config[section].items():
                     if isinstance(item_data, dict) and item_data.get("hidden") is True:
@@ -261,7 +350,10 @@ class ConfigComparator:
         return modified_config
 
 # Initialize components
-uptodown_monitor = UptodownMonitor()
+store_monitor = StoreMonitor(
+    package_name=config['app_package'],  # This gets 'com.dirtybit.fire' from your config
+    app_store_id='1503294866'  # Fun Run 4 iOS App Store ID (optional)
+)
 config_comparator = ConfigComparator()
 
 @bot.event
@@ -275,7 +367,7 @@ async def on_ready():
             color=0x00ff00,
             timestamp=datetime.now(timezone.utc)
         )
-        embed.add_field(name="Available Commands", value="`!compare` - Compare two storeConfig.json files\n`!modify <ids>` - Add **\"preOwned: true\"** to specific item IDs\n`!check_update` - Force check for Uptodown updates\n`!test_notification` - Test Discord messaging\n`!reset_version` - Reset version data (for testing)", inline=False)
+        embed.add_field(name="Available Commands", value="`!compare` - Compare two config files [Add old file as attachment first then new file]\n`!modify <ids>` - Add the secret object to specific item IDs\n`!check_update` - Force check for Playstore/App Store updates\n`!test_notification` - Test Discord messaging\n`!reset_version` - Reset version data (for testing)", inline=False)
         await channel.send(embed=embed) # type: ignore
         
         # Start the update checker
@@ -306,20 +398,24 @@ async def update_checker():
     except Exception as e:
         logger.error(f"Failed to send check notification: {str(e)}")
     
-    has_update, version, info = await uptodown_monitor.check_uptodown_update()
+    results = await store_monitor.check_store_updates()
+    play_result = results['play_store']
+    has_update = play_result['has_update']
+    version = play_result['new_version']
+    info = play_result['info']
     
     logger.info(f"Update check result: has_update={has_update}, version={version}, info={info}")
     
     if has_update:
         embed = discord.Embed(
             title="🚨 Fun Run 4 Update Detected!",
-            description=f"A new version of Fun Run 4 has been found on Uptodown!",
+            description=f"A new version of Fun Run 4 has been found on Playstore/App Store!",
             color=0xff6b00,
             timestamp=datetime.now(timezone.utc)
         )
         embed.add_field(name="Version", value=version or "Unknown", inline=True)
         embed.add_field(name="Details", value=info or "No details available", inline=False)
-        embed.set_footer(text="Use !compare command with old and new config file(s) files to see changes")
+        embed.set_footer(text="Use !compare command with old and new config files to see changes")
         
         try:
             await channel.send("@everyone", embed=embed) # type: ignore
@@ -347,16 +443,16 @@ async def update_checker():
 @bot.command(name='compare')
 async def compare_configs(ctx):
     """
-    Compare two storeConfig.json files to detect changes.
+    Compare two config files [Add old file as attachment first then new file] to detect changes.
     Usage: !compare (with two file attachments)
     """
     if len(ctx.message.attachments) != 2:
         embed = discord.Embed(
             title="❌ Invalid Usage",
-            description="Please attach exactly 2 storeConfig.json files to compare.\n\n**Usage:** `!compare` with 2 file attachments",
+            description="Please attach exactly 2 config files to compare.\n\n**Usage:** `!compare` with 2 file attachments",
             color=0xff0000
         )
-        embed.add_field(name="Expected Files", value="1️⃣ Old version storeConfig.json\n2️⃣ New version storeConfig.json", inline=False)
+        embed.add_field(name="Expected Files", value="1️⃣ Old version config file\n2️⃣ New version config file", inline=False)
         await ctx.reply(embed=embed)
         return
     
@@ -440,16 +536,16 @@ async def compare_configs(ctx):
             file_buffer.seek(0)
             
             # Send modified config file
-            discord_file = discord.File(file_buffer, filename="modified_storeConfig.json")
+            discord_file = discord.File(file_buffer, filename="modified_config.json")
             
             modify_embed = discord.Embed(
                 title="🔧 Modified Configuration File",
-                description="Here's the new configuration file with `preOwned: true` added to all newly detected items.",
+                description="Here's the new configuration file with `the secret object` added to all newly detected items.",
                 color=0x00ff00
             )
             modify_embed.add_field(
                 name="Changes Applied", 
-                value=f"Added `preOwned: true` to {sum(len(items) for items in changes['added'].values())} new items",
+                value=f"Added `the secret object` to {sum(len(items) for items in changes['added'].values())} new items",
                 inline=False
             )
             
@@ -462,25 +558,25 @@ async def compare_configs(ctx):
 @bot.command(name='modify')
 async def modify_config(ctx, *, item_ids=None):
     """
-    Apply preOwned: true to specific item IDs in a storeConfig.json file.
+    Apply the secret object to specific item IDs in a config file.
     Usage: !modify <item_ids> (with one JSON file attachment)
     Example: !modify 2050,2051,2052 or !modify 2050 2051 2052
     """
     if len(ctx.message.attachments) != 1:
         embed = discord.Embed(
             title="❌ Invalid Usage",
-            description="Please attach exactly 1 storeConfig.json file.\n\n**Usage:** `!modify <item_ids>` with 1 file attachment",
+            description="Please attach exactly 1 config file.\n\n**Usage:** `!modify <item_ids>` with 1 file attachment",
             color=0xff0000
         )
         embed.add_field(name="Examples", value="`!modify 2050,2051,2052`\n`!modify 2050 2051 2052`\n`!modify 3071,3072`", inline=False)
-        embed.add_field(name="Expected File", value="📎 storeConfig.json file to modify", inline=False)
+        embed.add_field(name="Expected File", value="📎 config file to modify", inline=False)
         await ctx.reply(embed=embed)
         return
     
     if not item_ids:
         embed = discord.Embed(
             title="❌ Missing Item IDs",
-            description="Please specify the item IDs to add preOwned: true to.",
+            description="Please specify the item IDs to add the secret object to.",
             color=0xff0000
         )
         embed.add_field(name="Usage", value="`!modify <item_ids>`", inline=False)
@@ -512,7 +608,7 @@ async def modify_config(ctx, *, item_ids=None):
             return
         
         # Show processing message
-        processing_msg = await ctx.reply(f"🔄 Processing config file and applying preOwned: true to {len(ids_to_modify)} items...")
+        processing_msg = await ctx.reply(f"🔄 Processing config file and applying the secret object to {len(ids_to_modify)} items...")
         
         # Download file
         content = await attachment.read()
@@ -524,7 +620,7 @@ async def modify_config(ctx, *, item_ids=None):
             await processing_msg.edit(content=f"❌ Error parsing JSON file: {str(e)}")
             return
         
-        # Apply preOwned: true to specified items
+        # Apply the secret object to specified items
         sections_to_check = ["animals", "skins", "hats", "glasses", "chests", "feet", "powerups"]
         modified_items = []
         not_found_items = []
@@ -533,7 +629,7 @@ async def modify_config(ctx, *, item_ids=None):
             found = False
             for section in sections_to_check:
                 if section in config_data and item_id in config_data[section]:
-                    config_data[section][item_id]["preOwned"] = True
+                    config_data[section][item_id]["the secret object"] = True
                     item_title = config_data[section][item_id].get('title', 'Unknown')
                     modified_items.append(f"`{item_id}`: {item_title} ({section})")
                     found = True
@@ -546,7 +642,7 @@ async def modify_config(ctx, *, item_ids=None):
         if modified_items:
             embed = discord.Embed(
                 title="✅ Configuration Modified",
-                description=f"Successfully applied `preOwned: true` to {len(modified_items)} items.",
+                description=f"Successfully applied `the secret object` to {len(modified_items)} items.",
                 color=0x00ff00,
                 timestamp=datetime.now(timezone.utc)
             )
@@ -593,11 +689,11 @@ async def modify_config(ctx, *, item_ids=None):
             file_buffer.seek(0)
             
             # Send modified config file
-            discord_file = discord.File(file_buffer, filename="modified_storeConfig.json")
+            discord_file = discord.File(file_buffer, filename="modified_config.json")
             
             modify_embed = discord.Embed(
                 title="🔧 Modified Configuration File",
-                description=f"Here's your configuration file with `preOwned: true` applied to {len(modified_items)} items.",
+                description=f"Here's your configuration file with `the secret object` applied to {len(modified_items)} items.",
                 color=0x00ff00
             )
             
@@ -621,7 +717,7 @@ async def test_notification(ctx):
             timestamp=datetime.now(timezone.utc)
         )
         embed.add_field(name="Simulated Version", value="2.31.0 (fake)", inline=True)
-        embed.add_field(name="Current Version", value=uptodown_monitor.current_version or "Unknown", inline=True)
+        embed.add_field(name="Current Version", value=store_monitor.current_versions.get('play_store') or "Unknown", inline=True)
         embed.add_field(name="Status", value="✅ Discord messaging is working!", inline=False)
         embed.set_footer(text="This was a test notification - no actual update occurred")
         
@@ -639,9 +735,9 @@ async def reset_version(ctx):
     This will make the bot think there's no current version, so the next check will trigger an update.
     """
     try:
-        uptodown_monitor.current_version = None
-        if os.path.exists(uptodown_monitor.version_file):
-            os.remove(uptodown_monitor.version_file)
+        store_monitor.current_versions = {'play_store': None, 'app_store': None}
+        if os.path.exists(store_monitor.version_file):
+            os.remove(store_monitor.version_file)
         
         embed = discord.Embed(
             title="🔄 Version Data Reset",
@@ -662,12 +758,16 @@ async def reset_version(ctx):
 @bot.command(name='check_update')
 async def manual_update_check(ctx):
     """
-    Manually trigger a check for Fun Run 4 updates on Uptodown.
+    Manually trigger a check for Fun Run 4 updates on Playstore/App Store.
     """
-    processing_msg = await ctx.reply("🔍 Checking Uptodown for Fun Run 4 updates...")
+    processing_msg = await ctx.reply("🔍 Checking Playstore/App Store for Fun Run 4 updates...")
     
     try:
-        has_update, version, info = await uptodown_monitor.check_uptodown_update()
+        results = await store_monitor.check_store_updates()
+        play_result = results['play_store']
+        has_update = play_result['has_update']
+        version = play_result['new_version']
+        info = play_result['info']
         
         if has_update:
             embed = discord.Embed(
